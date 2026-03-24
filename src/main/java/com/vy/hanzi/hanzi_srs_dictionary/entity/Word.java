@@ -35,7 +35,7 @@ public class Word {
     private int hskLevel;
     @Column(name  = "stroke_count")
     private int strokeCount;
-    @Column(name  = "audio_url")
+    @Column(name  = "audio_url", columnDefinition = "TEXT")
     private String audioUrl;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -49,4 +49,22 @@ public class Word {
                 joinColumns = @JoinColumn(name = "word_id"),
                 inverseJoinColumns = @JoinColumn(name = "grammar_point_id"))
     private List<GrammarPoint> grammarPoints;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable( name = "notebook_items",
+    joinColumns = @JoinColumn(name = "word_id"),
+            inverseJoinColumns = @JoinColumn(name = "notebook_id"))
+    private List<Notebook> notebooks;
+
+    @OneToMany(mappedBy = "word")
+    private List<SearchHistory> searchHistories;
+
+    @ManyToMany
+    @JoinTable(name = "word_has_type",
+            joinColumns = @JoinColumn(name = "word_id"),
+            inverseJoinColumns = @JoinColumn(name = "word_type_id"))
+    private List<WordType> types;
+
+    @OneToMany(mappedBy = "word")
+    private List<WordExample> examples;
 }

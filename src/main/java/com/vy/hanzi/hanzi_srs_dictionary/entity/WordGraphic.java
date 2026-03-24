@@ -17,12 +17,12 @@ public class WordGraphic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "word_id", nullable = false)
-    private Word word;
-
-    @Column(name = "gif_url", nullable = false)
+    @Column(name = "gif_url", nullable = false, columnDefinition = "TEXT")
     private String gifUrl;
     @Column(name ="gif_order")
     private Integer gifOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "word_id", nullable = false)
+    private Word word;
 }

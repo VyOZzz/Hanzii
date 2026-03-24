@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Entity
 @Table(name = "users")
@@ -27,5 +29,15 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    private Enum role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
+
+    @OneToMany(mappedBy = "user")
+    private List<Notebook> notebooks;
+
+    @OneToMany(mappedBy = "user")
+    private List<SearchHistory> searchHistories;
+    @OneToMany(mappedBy = "user")
+    private List<Translation> translations;
 }
