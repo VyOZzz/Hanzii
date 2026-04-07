@@ -1,0 +1,40 @@
+package com.vy.hanzi.hanzi_srs_dictionary.controller;
+
+import com.vy.hanzi.hanzi_srs_dictionary.dto.ApiResponse;
+import com.vy.hanzi.hanzi_srs_dictionary.dto.WordResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.service.WordService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/words")
+@RequiredArgsConstructor
+public class WordController {
+
+    private final WordService wordService;
+    // API tìm kiếm: localhost:8080/api/words/search?keyword=hao&page=0&size=10
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<WordResponseDTO>>> search(@RequestParam String keyword, Pageable pageable) {
+        Page<WordResponseDTO> result = wordService.searchWords(keyword, pageable);
+        Map<String, Object> meta = Map.of(
+                "page", result.getNumber(),
+                "size", result.getSize(),
+                "totalElements", result.getTotalElements(),
+                "totalPages", result.getTotalPages()
+        );
+
+        return ResponseEntity.ok(ApiResponse.success("Search words successfully", result, meta));
+    }
+
+    // API lấy chi tiết 1 từ: localhost:8080/api/words/1
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<WordResponseDTO>> getDetail(@PathVariable Long id) {
+        WordResponseDTO word = wordService.getDetail(id);
+        return ResponseEntity.ok(ApiResponse.success("Get word detail successfully", word));
+    }
+}

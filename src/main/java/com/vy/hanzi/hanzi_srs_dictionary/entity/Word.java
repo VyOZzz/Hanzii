@@ -22,9 +22,9 @@ public class Word {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String  hanzi;
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String pinyin;
     @Column(columnDefinition = "TEXT", nullable = false)
     private String meaning;
