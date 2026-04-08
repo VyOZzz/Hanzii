@@ -8,6 +8,7 @@ import com.vy.hanzi.hanzi_srs_dictionary.entity.User;
 import com.vy.hanzi.hanzi_srs_dictionary.exception.BadRequestException;
 import com.vy.hanzi.hanzi_srs_dictionary.exception.UnauthorizedException;
 import com.vy.hanzi.hanzi_srs_dictionary.repository.UserRepository;
+import com.vy.hanzi.hanzi_srs_dictionary.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthResponseDTO register(RegisterRequestDTO request) {
         String username = normalize(request.getUsername());
@@ -65,11 +67,15 @@ public class AuthService {
     }
 
     private AuthResponseDTO toAuthResponse(User user) {
+        String token = jwtService.generateToken(user.getId(), user.getUsername(), user.getRole());
+
         return AuthResponseDTO.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .accessToken(token)
+                .tokenType("Bearer")
                 .build();
     }
 

@@ -2,6 +2,7 @@ package com.vy.hanzi.hanzi_srs_dictionary.controller;
 
 import com.vy.hanzi.hanzi_srs_dictionary.dto.ApiResponse;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.WordResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.security.CurrentUserService;
 import com.vy.hanzi.hanzi_srs_dictionary.service.WordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class WordController {
 
     private final WordService wordService;
+    private final CurrentUserService currentUserService;
     // API tìm kiếm: localhost:8080/api/words/search?keyword=hao&page=0&size=10
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<WordResponseDTO>>> search(@RequestParam String keyword, Pageable pageable) {
@@ -49,8 +51,9 @@ public class WordController {
         ));
     }
 
-    @GetMapping("/recommended/user/{userId}")
-    public ResponseEntity<ApiResponse<java.util.List<WordResponseDTO>>> getRecommendedWords(@PathVariable Long userId) {
+    @GetMapping("/recommended/me")
+    public ResponseEntity<ApiResponse<java.util.List<WordResponseDTO>>> getRecommendedWords() {
+        Long userId = currentUserService.requireUserId();
         return ResponseEntity.ok(ApiResponse.success(
                 "Get recommended words successfully",
                 wordService.getRecommendedWordsByUser(userId)
