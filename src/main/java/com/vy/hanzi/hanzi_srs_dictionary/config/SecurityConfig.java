@@ -19,6 +19,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/api/words/**",
+                                "/api/users/**",
+                                "/api/notebooks/**",
+                                "/api/grammar-points/**",
+                                "/api/grammar-examples/**",
+                                "/api/search-history/**",
+                                "/api/translations/**",
+                                "/api/ai-config/**",
+                                "/api/word-assets/**",
+                                "/api/srs/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"

@@ -37,4 +37,23 @@ public class WordController {
         WordResponseDTO word = wordService.getDetail(id);
         return ResponseEntity.ok(ApiResponse.success("Get word detail successfully", word));
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<java.util.List<WordResponseDTO>>> filterByHskAndTypes(
+            @RequestParam Integer hskLevel,
+            @RequestParam java.util.List<String> types
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Filter words successfully",
+                wordService.getWordsByHskAndTypes(hskLevel, types)
+        ));
+    }
+
+    @GetMapping("/recommended/user/{userId}")
+    public ResponseEntity<ApiResponse<java.util.List<WordResponseDTO>>> getRecommendedWords(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Get recommended words successfully",
+                wordService.getRecommendedWordsByUser(userId)
+        ));
+    }
 }

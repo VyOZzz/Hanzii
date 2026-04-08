@@ -1,6 +1,7 @@
 package com.vy.hanzi.hanzi_srs_dictionary.service;
 
 import com.vy.hanzi.hanzi_srs_dictionary.dto.WordResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.exception.BadRequestException;
 import com.vy.hanzi.hanzi_srs_dictionary.exception.NotFoundException;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.Word;
 import com.vy.hanzi.hanzi_srs_dictionary.repository.WordRepository;
@@ -60,6 +61,40 @@ public class WordService {
         return convertToDTO(word);
     }
 
+    public List<WordResponseDTO> getWordsByHskAndTypes(Integer hskLevel, List<String> types) {
+        if (hskLevel == null || types == null || types.isEmpty()) {
+            throw new BadRequestException("hskLevel and types are required");
+        }
+
+        List<String> normalizedTypes = types.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(type -> !type.isEmpty())
+                .toList();
+
+        if (normalizedTypes.isEmpty()) {
+            throw new BadRequestException("types must contain at least one non-empty value");
+        }
+
+        return wordRepository.findByHskLevelAndTypes_NameIn(hskLevel, normalizedTypes)
+                .stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
+    public List<WordResponseDTO> getRecommendedWordsByUser(Long userId) {
+        if (userId == null) {
+            throw new BadRequestException("userId is required");
+        }
+
+        List<Word> words = wordRepository.findTop50BySearchHistories_User_IdOrderBySearchHistories_CreatedAtDesc(userId);
+        if (words.isEmpty()) {
+            words = wordRepository.findTop100ByOrderByHskLevelAscIdAsc();
+        }
+
+        return words.stream().map(this::convertToDTO).toList();
+    }
+
     public void importFromU8(InputStream inputStream) {
         try(BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String line;
@@ -88,7 +123,7 @@ public class WordService {
             }
             wordRepository.saveAll(batch); // Lưu batch cuối cùng nếu còn
         } catch (Exception e){
-                e.printStackTrace();
+                log.error("Import from U8 failed", e);
         }
     }
     public void importFromU8(String filePath) {
