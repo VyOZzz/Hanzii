@@ -82,6 +82,25 @@ public class WordService {
                 .toList();
     }
 
+    public Page<WordResponseDTO> getWordsByHskAndTypesPaged(Integer hskLevel, List<String> types, Pageable pageable) {
+        if (hskLevel == null || types == null || types.isEmpty()) {
+            throw new BadRequestException("hskLevel and types are required");
+        }
+
+        List<String> normalizedTypes = types.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(type -> !type.isEmpty())
+                .toList();
+
+        if (normalizedTypes.isEmpty()) {
+            throw new BadRequestException("types must contain at least one non-empty value");
+        }
+
+        return wordRepository.findByHskLevelAndTypes_NameIn(hskLevel, normalizedTypes, pageable)
+                .map(this::convertToDTO);
+    }
+
     public List<WordResponseDTO> getRecommendedWordsByUser(Long userId) {
         if (userId == null) {
             throw new BadRequestException("userId is required");
@@ -93,6 +112,19 @@ public class WordService {
         }
 
         return words.stream().map(this::convertToDTO).toList();
+    }
+
+    public Page<WordResponseDTO> getRecommendedWordsByUser(Long userId, Pageable pageable) {
+        if (userId == null) {
+            throw new BadRequestException("userId is required");
+        }
+
+        Page<Word> words = wordRepository.findTop50BySearchHistories_User_IdOrderBySearchHistories_CreatedAtDesc(userId, pageable);
+        if (words.isEmpty()) {
+            words = wordRepository.findAll(pageable);
+        }
+
+        return words.map(this::convertToDTO);
     }
 
     public void importFromU8(InputStream inputStream) {

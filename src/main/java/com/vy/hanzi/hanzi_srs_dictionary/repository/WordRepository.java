@@ -13,6 +13,7 @@ import java.util.List;
 public interface WordRepository extends JpaRepository<Word, Long> {
     List<Word> findTop100ByOrderByHskLevelAscIdAsc();
     List<Word> findByHskLevelAndTypes_NameIn(int hskLevel, Collection<String> types);
+    Page<Word> findByHskLevelAndTypes_NameIn(int hskLevel, Collection<String> types, Pageable pageable);
     Page<Word> findByMeaningContainingIgnoreCaseOrPinyinContainingIgnoreCaseOrHanziContainingIgnoreCase(
             String meaningKeyword,
             String pinyinKeyword,
@@ -21,6 +22,7 @@ public interface WordRepository extends JpaRepository<Word, Long> {
     );
     List<Word> findByHanziIn(Collection<String> hanziList);
     List<Word> findTop50BySearchHistories_User_IdOrderBySearchHistories_CreatedAtDesc(Long userId);
+    Page<Word> findTop50BySearchHistories_User_IdOrderBySearchHistories_CreatedAtDesc(Long userId, Pageable pageable);
 
 
 

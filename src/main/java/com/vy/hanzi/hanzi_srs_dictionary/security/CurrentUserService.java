@@ -8,11 +8,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class CurrentUserService {
 
-    public Long requireUserId() {
+    public Long getCurrentUserIdOrNull() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserPrincipal principal)) {
-            throw new UnauthorizedException("Unauthorized");
+            return null;
         }
         return principal.getUserId();
+    }
+
+    public Long requireUserId() {
+        Long userId = getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+        return userId;
     }
 }
