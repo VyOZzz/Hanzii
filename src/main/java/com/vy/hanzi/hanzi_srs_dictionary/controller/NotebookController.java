@@ -36,9 +36,10 @@ public class NotebookController {
             @PathVariable Long notebookId,
             @PathVariable Long wordId
     ) {
+        Long userId = currentUserService.requireUserId();
         return ResponseEntity.ok(ApiResponse.success(
                 "Add word to notebook successfully",
-                notebookService.addWordToNotebook(notebookId, wordId)
+                notebookService.addWordToNotebook(userId, notebookId, wordId)
         ));
     }
 }
