@@ -169,3 +169,10 @@ help.md
 .mvn/
 application.properties
 application.yml
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
+
+# Backend build artifacts in monorepo layout
+backend/target/
