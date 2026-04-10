@@ -1,6 +1,7 @@
 package com.vy.hanzi.hanzi_srs_dictionary.service;
 
 import com.vy.hanzi.hanzi_srs_dictionary.dto.AuthResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.dto.ChangePasswordRequestDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.LoginRequestDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.RegisterRequestDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.Role;
@@ -64,6 +65,25 @@ public class AuthService {
         }
 
         return toAuthResponse(user);
+    }
+
+    public void changePassword(Long userId, ChangePasswordRequestDTO request) {
+        if (request.getOldPassword() == null || request.getOldPassword().isBlank()) {
+            throw new BadRequestException("Old password is required");
+        }
+        if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
+            throw new BadRequestException("New password must be at least 6 characters");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BadRequestException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     private AuthResponseDTO toAuthResponse(User user) {

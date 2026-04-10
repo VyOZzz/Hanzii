@@ -1,0 +1,269 @@
+/* ═══════════════════════════════════════════════════════
+   HANZII DESIGN SYSTEM — Dark Chinese Calligraphy Theme
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surface colors ── */
+  --bg-base: #0b0b10;
+  --bg-raised: #13131a;
+  --bg-card: rgba(20, 20, 30, 0.72);
+  --bg-card-hover: rgba(28, 28, 42, 0.82);
+  --bg-glass: rgba(255, 255, 255, 0.04);
+  --bg-input: rgba(255, 255, 255, 0.06);
+  --bg-input-focus: rgba(255, 255, 255, 0.10);
+
+  /* ── Accent — Chinese Red & Gold ── */
+  --accent: #e8433e;
+  --accent-soft: rgba(232, 67, 62, 0.15);
+  --accent-hover: #ff5c57;
+  --gold: #d4a853;
+  --gold-soft: rgba(212, 168, 83, 0.15);
+
+  /* ── Text hierarchy ── */
+  --text-primary: #eae8e4;
+  --text-secondary: #9e9b95;
+  --text-muted: #5e5c58;
+  --text-accent: #e8433e;
+  --text-gold: #d4a853;
+
+  /* ── Borders ── */
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(232, 67, 62, 0.35);
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px rgba(232, 67, 62, 0.08);
+
+  /* ── Radii ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-chinese: 'Noto Serif SC', 'Songti SC', serif;
+
+  /* ── Transitions ── */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration: 0.2s;
+  --duration-slow: 0.4s;
+
+  /* ── Spacing ── */
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap-md: 12px;
+  --gap-lg: 20px;
+  --gap-xl: 28px;
+
+  /* ── Success / Warning ── */
+  --success: #3ddc84;
+  --success-soft: rgba(61, 220, 132, 0.12);
+  --warning: #f5a623;
+  --error: #e8433e;
+  --error-soft: rgba(232, 67, 62, 0.12);
+}
+
+/* ── Reset / Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-base);
+  line-height: 1.55;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+/* Subtle grid pattern background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232, 67, 62, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(212, 168, 83, 0.04) 0%, transparent 50%);
+  z-index: 0;
+}
+
+#root {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Links ── */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--duration) var(--ease);
+}
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* ── Forms base ── */
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  outline: none;
+  transition: all var(--duration) var(--ease);
+}
+
+input,
+select,
+textarea {
+  background: var(--bg-input);
+  width: 100%;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background: var(--bg-input-focus);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ── Buttons ── */
+button {
+  cursor: pointer;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-strong);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all var(--duration) var(--ease);
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  transform: none;
+}
+
+/* Primary button */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #c73631);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 12px rgba(232, 67, 62, 0.25);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--accent-hover), #d9433d);
+  box-shadow: 0 4px 20px rgba(232, 67, 62, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  box-shadow: none;
+}
+
+/* Gold button */
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), #b88e3a);
+  border: none;
+  color: #1a1a1a;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #e0b45d, #c9993f);
+  color: #111;
+}
+
+/* Ghost button */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-glass);
+  color: var(--text-primary);
+}
+
+/* Icon button */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-icon .icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+/* ── Utility ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}

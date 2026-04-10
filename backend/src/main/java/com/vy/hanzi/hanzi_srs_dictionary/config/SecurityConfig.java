@@ -28,7 +28,14 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/api/words/search",
+                                "/api/words/{id}",
+                                "/api/words/filter",
+                                "/api/words/filter/paged",
+                                "/api/grammar-points",
+                                "/api/grammar-points/**",
+                                "/api/grammar-examples/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
