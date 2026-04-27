@@ -6,6 +6,7 @@ import { useAppContext } from '../context/useAppContext'
 import { WORD_TYPES } from '../constants/appConstants'
 import { convertPinyin } from '../utils/pinyin'
 import { searchWords } from '../api'
+import { formatMeaning } from '../utils/meaning'
 
 export default function DictionaryPage() {
   const {
@@ -115,12 +116,12 @@ export default function DictionaryPage() {
                           e.preventDefault() // prevent blur
                           setSearchKeyword(s.hanzi)
                           setShowSuggestions(false)
-                          handleSelectWord(s)
+                          handleSelectWord(s.id)
                         }}
                       >
                         <span className="sg-hanzi">{s.hanzi}</span>
                         <span className="sg-pinyin">{convertPinyin(s.pinyin)}</span>
-                        <span className="sg-meaning">{s.meaning}</span>
+                        <span className="sg-meaning">{formatMeaning(s.meaning)}</span>
                       </li>
                     ))}
                   </ul>
@@ -161,7 +162,7 @@ export default function DictionaryPage() {
           <div className="detail">
             <h3>{wordDetail.hanzi}</h3>
             <p><strong>Pinyin:</strong> {convertPinyin(wordDetail.pinyin)}</p>
-            <p><strong>Nghĩa:</strong> {wordDetail.meaning}</p>
+            <p><strong>Nghĩa:</strong> {formatMeaning(wordDetail.meaning)}</p>
             {wordDetail.sinoVietnamese && <p><strong>Hán Việt:</strong> {wordDetail.sinoVietnamese}</p>}
             <p><strong>HSK:</strong> Level {wordDetail.hskLevel || '—'}</p>
             {wordDetail.strokeCount > 0 && <p><strong>Số nét:</strong> {wordDetail.strokeCount}</p>}

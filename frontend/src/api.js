@@ -65,14 +65,32 @@ async function request(path, { method = 'GET', body, token, headers } = {}) {
     requestHeaders.Authorization = `Bearer ${token}`
   }
 
-  const response = await fetch(path, {
-    method,
-    headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
-  })
+  let response
+  try {
+    response = await fetch(path, {
+      method,
+      headers: requestHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  } catch (networkError) {
+    // Fetch itself failed — backend không chạy hoặc mất mạng
+    throw new Error('Không thể kết nối đến server. Hãy kiểm tra backend đang chạy tại localhost:8080.')
+  }
+
+  // Nếu backend trả về HTML (ví dụ Vite 404 page khi proxy fail)
+  const contentType = response.headers.get('content-type') || ''
+  if (contentType.includes('text/html')) {
+    throw new Error('Không thể kết nối đến server. Hãy kiểm tra backend đang chạy tại localhost:8080.')
+  }
 
   const text = await response.text()
   const payload = text ? JSON.parse(text) : null
+
+  // Token hết hạn hoặc không hợp lệ → xóa token cũ để user đăng nhập lại
+  if (response.status === 401 || response.status === 403) {
+    clearAuth()
+    throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+  }
 
   if (!response.ok) {
     throw new Error(buildErrorMessage(payload, `HTTP ${response.status}`))
@@ -84,6 +102,8 @@ async function request(path, { method = 'GET', body, token, headers } = {}) {
 
   return payload
 }
+
+
 
 function mapPageEnvelope(payload) {
   const pageData = payload?.data || {}
@@ -243,14 +263,27 @@ export async function autoTranslate({ text, sourceLang, targetLang }) {
     dt: 't',
     q: text,
   })
-  const response = await fetch(
-    `https://translate.googleapis.com/translate_a/single?${params.toString()}`,
-  )
-  if (!response.ok) throw new Error('Dịch vụ dịch không khả dụng')
-  const data = await response.json()
-  // Response format: [[["translated","source",...], ...], ...]
+
+  let response
+  try {
+    response = await fetch(
+      `https://translate.googleapis.com/translate_a/single?${params.toString()}`,
+    )
+  } catch {
+    throw new Error('Khong the ket noi den dich vu dich. Kiem tra ket noi mang.')
+  }
+
+  if (!response.ok) throw new Error('Dich vu dich khong kha dung (loi ' + response.status + ')')
+
+  let data
+  try {
+    data = await response.json()
+  } catch {
+    throw new Error('Dich vu dich tra ve du lieu khong hop le')
+  }
+
   if (!Array.isArray(data) || !Array.isArray(data[0])) {
-    throw new Error('Lỗi định dạng kết quả dịch')
+    throw new Error('Loi dinh dang ket qua dich')
   }
   return data[0].map((segment) => segment[0]).join('')
 }
