@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
+import { autoTranslate } from '../api'
 
 export default function TranslationPage() {
   const {
@@ -16,6 +17,7 @@ export default function TranslationPage() {
   const [sourceLang, setSourceLang] = useState('Tiếng Trung')
   const [targetLang, setTargetLang] = useState('Tiếng Việt')
   const [translating, setTranslating] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   function handleSwapLanguages() {
     setSourceLang(targetLang)
@@ -24,24 +26,40 @@ export default function TranslationPage() {
     setTranslatedText(sourceText)
   }
 
-  async function handleTranslate(e) {
-    e.preventDefault()
-    if (!sourceText.trim() || !loggedIn) return
+  async function handleAutoTranslate() {
+    if (!sourceText.trim()) return
     setTranslating(true)
+    setTranslatedText('')
     try {
-      const result = await translateText({
+      const result = await autoTranslate({
+        text: sourceText.trim(),
+        sourceLang,
+        targetLang,
+      })
+      setTranslatedText(result)
+    } catch (e) {
+      setTranslatedText(`[Lỗi dịch: ${e.message}]`)
+    }
+    setTranslating(false)
+  }
+
+  async function handleSave(e) {
+    e.preventDefault()
+    if (!sourceText.trim() || !translatedText.trim() || !loggedIn) return
+    setSaving(true)
+    try {
+      await translateText({
         sourceText: sourceText.trim(),
         sourceLanguage: sourceLang,
         targetLanguage: targetLang,
         translatedText: translatedText.trim(),
       })
-      if (result) {
-        setTranslatedText(result.translatedText || translatedText)
-      }
+      setSourceText('')
+      setTranslatedText('')
     } catch {
       /* error handled by context */
     }
-    setTranslating(false)
+    setSaving(false)
   }
 
   return (
@@ -50,55 +68,64 @@ export default function TranslationPage() {
       <article className="card card-accent fade-in">
         <h2><span className="card-icon">🌐</span> Dịch văn bản</h2>
 
-        {!loggedIn ? (
-          <StateMessage>
-            <div className="empty-graphic">🔒</div>
-            Đăng nhập để sử dụng tính năng dịch.
-          </StateMessage>
-        ) : (
-          <form onSubmit={handleTranslate}>
-            <div className="lang-select" style={{ marginBottom: 12 }}>
-              <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
-                <option>Tiếng Trung</option>
-                <option>Tiếng Việt</option>
-                <option>English</option>
-              </select>
-              <button type="button" className="swap-btn btn-ghost" onClick={handleSwapLanguages}>⇄</button>
-              <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
-                <option>Tiếng Việt</option>
-                <option>Tiếng Trung</option>
-                <option>English</option>
-              </select>
-            </div>
+        <form onSubmit={handleSave}>
+          <div className="lang-select" style={{ marginBottom: 12 }}>
+            <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
+              <option>Tiếng Trung</option>
+              <option>Tiếng Việt</option>
+              <option>English</option>
+            </select>
+            <button type="button" className="swap-btn btn-ghost" onClick={handleSwapLanguages}>⇄</button>
+            <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+              <option>Tiếng Việt</option>
+              <option>Tiếng Trung</option>
+              <option>English</option>
+            </select>
+          </div>
 
-            <div className="translate-grid">
-              <div className="translate-box">
-                <label>Văn bản gốc ({sourceLang})</label>
-                <textarea
-                  value={sourceText}
-                  onChange={(e) => setSourceText(e.target.value)}
-                  placeholder={`Nhập văn bản ${sourceLang}...`}
-                  disabled={translating}
-                />
-              </div>
-              <div className="translate-box">
-                <label>Bản dịch ({targetLang})</label>
-                <textarea
-                  value={translatedText}
-                  onChange={(e) => setTranslatedText(e.target.value)}
-                  placeholder={`Nhập bản dịch ${targetLang}...`}
-                  disabled={translating}
-                />
-              </div>
+          <div className="translate-grid">
+            <div className="translate-box">
+              <label>Văn bản gốc ({sourceLang})</label>
+              <textarea
+                value={sourceText}
+                onChange={(e) => setSourceText(e.target.value)}
+                placeholder={`Nhập văn bản ${sourceLang}...`}
+                disabled={translating || saving}
+              />
             </div>
+            <div className="translate-box">
+              <label>Bản dịch ({targetLang})</label>
+              <textarea
+                value={translating ? 'Đang dịch...' : translatedText}
+                onChange={(e) => setTranslatedText(e.target.value)}
+                placeholder={`Bản dịch sẽ hiển thị ở đây...`}
+                disabled={translating || saving}
+              />
+            </div>
+          </div>
 
-            <div style={{ marginTop: 12 }}>
-              <button type="submit" className="btn-primary btn-icon" disabled={translating || !sourceText.trim()}>
-                <span className="icon">💾</span> {translating ? 'Đang lưu...' : 'Lưu bản dịch'}
+          <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              className="btn-primary btn-icon"
+              disabled={translating || !sourceText.trim()}
+              onClick={handleAutoTranslate}
+              style={{ flex: 1 }}
+            >
+              <span className="icon">🔄</span> {translating ? 'Đang dịch...' : 'Dịch'}
+            </button>
+            {loggedIn && (
+              <button
+                type="submit"
+                className="btn-ghost btn-icon"
+                disabled={saving || !sourceText.trim() || !translatedText.trim()}
+                style={{ flex: 1 }}
+              >
+                <span className="icon">💾</span> {saving ? 'Đang lưu...' : 'Lưu bản dịch'}
               </button>
-            </div>
-          </form>
-        )}
+            )}
+          </div>
+        </form>
       </article>
 
       {/* Translation history */}

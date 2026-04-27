@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,11 @@ public interface SrsReviewCardRepository extends JpaRepository<SrsReviewCard, Lo
     List<SrsReviewCard> findByUserIdAndNextReviewAtLessThanEqualOrderByNextReviewAtAsc(Long userId, LocalDateTime now);
 
     List<SrsReviewCard> findByUserIdOrderByNextReviewAtAsc(Long userId);
+
+    List<SrsReviewCard> findByUserIdAndWordIdInAndNextReviewAtLessThanEqualOrderByNextReviewAtAsc(
+            Long userId, Collection<Long> wordIds, LocalDateTime now);
+
+    List<SrsReviewCard> findByUserIdAndWordIdIn(Long userId, Collection<Long> wordIds);
+
+    long countByUserId(Long userId);
 }

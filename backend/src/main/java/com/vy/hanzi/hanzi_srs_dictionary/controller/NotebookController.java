@@ -3,6 +3,7 @@ package com.vy.hanzi.hanzi_srs_dictionary.controller;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.ApiResponse;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.CreateNotebookRequestDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.NotebookResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.dto.WordResponseDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.security.CurrentUserService;
 import com.vy.hanzi.hanzi_srs_dictionary.service.NotebookService;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,27 @@ public class NotebookController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Add word to notebook successfully",
                 notebookService.addWordToNotebook(userId, notebookId, wordId)
+        ));
+    }
+
+    @DeleteMapping("/{notebookId}/words/{wordId}")
+    public ResponseEntity<ApiResponse<NotebookResponseDTO>> removeWordFromNotebook(
+            @PathVariable Long notebookId,
+            @PathVariable Long wordId
+    ) {
+        Long userId = currentUserService.requireUserId();
+        return ResponseEntity.ok(ApiResponse.success(
+                "Remove word from notebook successfully",
+                notebookService.removeWordFromNotebook(userId, notebookId, wordId)
+        ));
+    }
+
+    @GetMapping("/{notebookId}/words")
+    public ResponseEntity<ApiResponse<List<WordResponseDTO>>> getNotebookWords(@PathVariable Long notebookId) {
+        Long userId = currentUserService.requireUserId();
+        return ResponseEntity.ok(ApiResponse.success(
+                "Get notebook words successfully",
+                notebookService.getNotebookWords(userId, notebookId)
         ));
     }
 }

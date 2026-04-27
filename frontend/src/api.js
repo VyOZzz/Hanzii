@@ -103,18 +103,14 @@ function mapPageEnvelope(payload) {
   }
 }
 
+/* ── Auth ── */
+
 export async function login({ username, password }) {
-  return request('/api/auth/login', {
-    method: 'POST',
-    body: { username, password },
-  })
+  return request('/api/auth/login', { method: 'POST', body: { username, password } })
 }
 
 export async function register({ username, email, password }) {
-  return request('/api/auth/register', {
-    method: 'POST',
-    body: { username, email, password },
-  })
+  return request('/api/auth/register', { method: 'POST', body: { username, email, password } })
 }
 
 export async function changePasswordApi({ oldPassword, newPassword, token }) {
@@ -124,6 +120,8 @@ export async function changePasswordApi({ oldPassword, newPassword, token }) {
     token,
   })
 }
+
+/* ── Words ── */
 
 export async function searchWords({ keyword, page, size, token }) {
   const params = new URLSearchParams({ keyword, page: String(page), size: String(size) })
@@ -149,12 +147,10 @@ export async function getRecommendedPaged({ page, size, token }) {
   return mapPageEnvelope(payload)
 }
 
+/* ── Notebooks ── */
+
 export async function createNotebook({ title, token }) {
-  const payload = await request('/api/notebooks', {
-    method: 'POST',
-    body: { title },
-    token,
-  })
+  const payload = await request('/api/notebooks', { method: 'POST', body: { title }, token })
   return payload.data
 }
 
@@ -164,19 +160,24 @@ export async function getMyNotebooks(token) {
 }
 
 export async function addWordToNotebook({ notebookId, wordId, token }) {
-  const payload = await request(`/api/notebooks/${notebookId}/words/${wordId}`, {
-    method: 'POST',
-    token,
-  })
+  const payload = await request(`/api/notebooks/${notebookId}/words/${wordId}`, { method: 'POST', token })
   return payload.data
 }
 
+export async function removeNotebookWord({ notebookId, wordId, token }) {
+  const payload = await request(`/api/notebooks/${notebookId}/words/${wordId}`, { method: 'DELETE', token })
+  return payload.data
+}
+
+export async function getNotebookWords({ notebookId, token }) {
+  const payload = await request(`/api/notebooks/${notebookId}/words`, { token })
+  return Array.isArray(payload.data) ? payload.data : []
+}
+
+/* ── SRS ── */
+
 export async function addWordToSrs({ wordId, token }) {
-  const payload = await request('/api/srs/cards', {
-    method: 'POST',
-    body: { wordId },
-    token,
-  })
+  const payload = await request('/api/srs/cards', { method: 'POST', body: { wordId }, token })
   return payload.data
 }
 
@@ -185,14 +186,22 @@ export async function getSrsDueCards(token) {
   return Array.isArray(payload.data) ? payload.data : []
 }
 
-export async function submitSrsReview({ wordId, remembered, token }) {
-  const payload = await request('/api/srs/review', {
-    method: 'POST',
-    body: { wordId, remembered },
-    token,
-  })
+export async function submitSrsReview({ wordId, rating, token }) {
+  const payload = await request('/api/srs/review', { method: 'POST', body: { wordId, rating }, token })
   return payload.data
 }
+
+export async function prepareNotebookReview({ notebookId, all = false, token }) {
+  const payload = await request(`/api/srs/cards/notebook/${notebookId}?all=${all}`, { method: 'POST', token })
+  return payload.data // { newCardsCreated, dueCards }
+}
+
+export async function getNotebookDueCards({ notebookId, token }) {
+  const payload = await request(`/api/srs/review/notebook/${notebookId}`, { token })
+  return Array.isArray(payload.data) ? payload.data : []
+}
+
+/* ── Grammar ── */
 
 export async function getGrammarPoints() {
   const payload = await request('/api/grammar-points')
@@ -209,9 +218,41 @@ export async function getGrammarExamplesByPointId(grammarPointId) {
   return Array.isArray(payload.data) ? payload.data : []
 }
 
+/* ── History ── */
+
 export async function getSearchHistory(token) {
   const payload = await request('/api/search-history/me', { token })
   return Array.isArray(payload.data) ? payload.data : []
+}
+
+/* ── Translation ── */
+
+const LANG_CODE_MAP = {
+  'Tiếng Trung': 'zh-CN',
+  'Tiếng Việt': 'vi',
+  'English': 'en',
+}
+
+export async function autoTranslate({ text, sourceLang, targetLang }) {
+  const src = LANG_CODE_MAP[sourceLang] || 'zh-CN'
+  const tgt = LANG_CODE_MAP[targetLang] || 'vi'
+  const params = new URLSearchParams({
+    client: 'gtx',
+    sl: src,
+    tl: tgt,
+    dt: 't',
+    q: text,
+  })
+  const response = await fetch(
+    `https://translate.googleapis.com/translate_a/single?${params.toString()}`,
+  )
+  if (!response.ok) throw new Error('Dịch vụ dịch không khả dụng')
+  const data = await response.json()
+  // Response format: [[["translated","source",...], ...], ...]
+  if (!Array.isArray(data) || !Array.isArray(data[0])) {
+    throw new Error('Lỗi định dạng kết quả dịch')
+  }
+  return data[0].map((segment) => segment[0]).join('')
 }
 
 export async function getTranslations(token) {

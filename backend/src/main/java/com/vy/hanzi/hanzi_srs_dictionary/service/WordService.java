@@ -25,10 +25,10 @@ public class WordService {
 
     private final WordRepository wordRepository;
     public Page<WordResponseDTO> searchWords(String keyword, Pageable pageable) {
-        Page<Word> words = wordRepository.findByMeaningContainingIgnoreCaseOrPinyinContainingIgnoreCaseOrHanziContainingIgnoreCase(
+        String strippedPinyin = keyword != null ? keyword.replaceAll("\\s+", "") : "";
+        Page<Word> words = wordRepository.searchWordsFlexible(
                 keyword,
-                keyword,
-                keyword,
+                strippedPinyin,
                 pageable
         );
         return words.map(this::convertToDTO);
@@ -141,7 +141,10 @@ public class WordService {
                 String [] parts2 = rest.split("\\] /", 2);
                 if(parts2.length < 2) continue; // Bỏ qua dòng không đủ thông tin
                 String pinyin = parts2[0].replace("[", "").trim();
-                String meaning = parts2[1].replace("/", "").trim();
+                String meaning = java.util.Arrays.stream(parts2[1].split("/"))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(java.util.stream.Collectors.joining(", "));
                 Word word = Word.builder()
                         .hanzi(simplified)
                         .pinyin(pinyin)
@@ -163,6 +166,61 @@ public class WordService {
             importFromU8(inputStream);
         } catch (IOException e){
             log.error("Lỗi khi đọc file: " + filePath, e);
+        }
+    }
+
+    @org.springframework.beans.factory.annotation.Value("${dictionary.import.file-path:}")
+    private String dictionaryFilePath;
+
+    @org.springframework.transaction.annotation.Transactional
+    public void fixDictionaryMeanings() {
+        if (dictionaryFilePath == null || dictionaryFilePath.isBlank()) {
+            log.error("No dictionary file path found to fix meetings.");
+            return;
+        }
+        log.info("Starting to fix dictionary meanings from file: {}", dictionaryFilePath);
+        try(BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(dictionaryFilePath), StandardCharsets.UTF_8))) {
+            String line;
+            java.util.Map<String, String> dictMap = new java.util.HashMap<>();
+            while ((line = reader.readLine()) != null) {
+                if(line.trim().isEmpty() || line.startsWith("#")) continue;
+                String[] parts = line.split("\\s+", 3);
+                if(parts.length < 3) continue;
+                String simplified = parts[1];
+                String rest = parts[2];
+                String [] parts2 = rest.split("\\] /", 2);
+                if(parts2.length < 2) continue;
+                String pinyin = parts2[0].replace("[", "").trim();
+                String meaning = java.util.Arrays.stream(parts2[1].split("/"))
+                      .map(String::trim)
+                      .filter(s -> !s.isEmpty())
+                      .collect(java.util.stream.Collectors.joining(", "));
+                dictMap.put(simplified + "|" + pinyin, meaning);
+            }
+            log.info("Loaded {} definitions. Updating DB...", dictMap.size());
+            
+            int batchSize = 5000;
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, batchSize);
+            Page<Word> page;
+            int count = 0;
+            do {
+                page = wordRepository.findAll(pageable);
+                for (Word w : page.getContent()) {
+                    String key = w.getHanzi() + "|" + w.getPinyin();
+                    String correctMeaning = dictMap.get(key);
+                    if (correctMeaning != null && !correctMeaning.equals(w.getMeaning())) {
+                        w.setMeaning(correctMeaning);
+                    }
+                }
+                wordRepository.saveAll(page.getContent());
+                count += page.getNumberOfElements();
+                log.info("Fixed {} words in DB...", count);
+                pageable = pageable.next();
+            } while (page.hasNext());
+            
+            log.info("Dictionary meaning fix completed successfully!");
+        } catch (Exception e){
+            log.error("Error fixing dictionary: " + dictionaryFilePath, e);
         }
     }
 }

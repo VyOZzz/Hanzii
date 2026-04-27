@@ -1,8 +1,11 @@
+import { useRef, useEffect, useState } from 'react'
 import Pagination from '../components/Pagination'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
 import WordList from '../components/WordList'
 import { useAppContext } from '../context/useAppContext'
 import { WORD_TYPES } from '../constants/appConstants'
+import { convertPinyin } from '../utils/pinyin'
+import { searchWords } from '../api'
 
 export default function DictionaryPage() {
   const {
@@ -26,7 +29,49 @@ export default function DictionaryPage() {
     setSelectedNotebookId,
     addCurrentWordToNotebook,
     addCurrentWordToSrs,
+    token
   } = useAppContext()
+
+  const detailRef = useRef(null)
+  const prevWordIdRef = useRef(null)
+
+  // Auto-suggest state
+  const [suggestions, setSuggestions] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestionLoading, setSuggestionLoading] = useState(false)
+  const blurTimeout = useRef(null)
+
+  // Auto-scroll to detail section when a word is selected
+  useEffect(() => {
+    if (wordDetail && wordDetail.id !== prevWordIdRef.current) {
+      prevWordIdRef.current = wordDetail.id
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [wordDetail])
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchKeyword.trim().length > 0) {
+        setSuggestionLoading(true)
+        try {
+          const res = await searchWords({ keyword: searchKeyword.trim(), page: 0, size: 5, token })
+          setSuggestions(res.items || [])
+          setShowSuggestions(true)
+        } catch (e) {
+          console.error('Lỗi lấy gợi ý:', e)
+        } finally {
+          setSuggestionLoading(false)
+        }
+      } else {
+        setSuggestions([])
+        setShowSuggestions(false)
+      }
+    }, 400) // 400ms debounce
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchKeyword, token])
 
   return (
     <div className="column">
@@ -35,16 +80,54 @@ export default function DictionaryPage() {
         <h2><span className="card-icon">🔍</span> Tra từ</h2>
         <form
           className="form-inline"
+          style={{ position: 'relative' }}
           onSubmit={(e) => {
             e.preventDefault()
+            setShowSuggestions(false)
             loadSearch(0)
           }}
         >
-          <input
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            placeholder="Nhập hanzi / pinyin / nghĩa tiếng Việt..."
-          />
+          <div style={{ position: 'relative', flex: 1, display: 'flex' }}>
+            <input
+              style={{ flex: 1 }}
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onFocus={() => {
+                if (suggestions.length > 0) setShowSuggestions(true)
+              }}
+              onBlur={() => {
+                blurTimeout.current = setTimeout(() => setShowSuggestions(false), 200)
+              }}
+              placeholder="Nhập hanzi / pinyin / nghĩa tiếng Việt..."
+            />
+            
+            {showSuggestions && (
+              <div className="search-suggestions fade-in">
+                {suggestionLoading ? (
+                  <div style={{ padding: 12, textAlign: 'center' }}>Đang tìm...</div>
+                ) : suggestions.length > 0 ? (
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                    {suggestions.map((s) => (
+                      <li
+                        key={s.id}
+                        className="suggestion-item"
+                        onMouseDown={(e) => {
+                          e.preventDefault() // prevent blur
+                          setSearchKeyword(s.hanzi)
+                          setShowSuggestions(false)
+                          handleSelectWord(s)
+                        }}
+                      >
+                        <span className="sg-hanzi">{s.hanzi}</span>
+                        <span className="sg-pinyin">{convertPinyin(s.pinyin)}</span>
+                        <span className="sg-meaning">{s.meaning}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            )}
+          </div>
           <button type="submit" className="btn-primary">Tìm kiếm</button>
         </form>
 
@@ -62,7 +145,10 @@ export default function DictionaryPage() {
       </article>
 
       {/* Word detail */}
-      <article className="card fade-in fade-in-delay-1">
+      <article
+        ref={detailRef}
+        className={`card fade-in fade-in-delay-1${wordDetail ? ' card-detail-active' : ''}`}
+      >
         <h2><span className="card-icon">📝</span> Chi tiết từ vựng</h2>
         {detailLoading && <SkeletonBlock lines={3} />}
         {!detailLoading && !wordDetail && (
@@ -74,7 +160,7 @@ export default function DictionaryPage() {
         {wordDetail && (
           <div className="detail">
             <h3>{wordDetail.hanzi}</h3>
-            <p><strong>Pinyin:</strong> {wordDetail.pinyin}</p>
+            <p><strong>Pinyin:</strong> {convertPinyin(wordDetail.pinyin)}</p>
             <p><strong>Nghĩa:</strong> {wordDetail.meaning}</p>
             {wordDetail.sinoVietnamese && <p><strong>Hán Việt:</strong> {wordDetail.sinoVietnamese}</p>}
             <p><strong>HSK:</strong> Level {wordDetail.hskLevel || '—'}</p>

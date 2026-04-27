@@ -21,6 +21,13 @@ public class WordController {
     private final WordService wordService;
     private final CurrentUserService currentUserService;
     private final SearchHistoryService searchHistoryService;
+    @PostMapping("/fix-dictionary")
+    public ResponseEntity<ApiResponse<String>> fixDictionary() {
+        // Runs the fix process asynchronously so we don't timeout the HTTP response if it's slow
+        new Thread(() -> wordService.fixDictionaryMeanings()).start();
+        return ResponseEntity.ok(ApiResponse.success("Fix dictionary triggered in background", null));
+    }
+
     // API tìm kiếm: localhost:8080/api/words/search?keyword=hao&page=0&size=10
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<WordResponseDTO>>> search(@RequestParam String keyword, Pageable pageable) {

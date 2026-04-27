@@ -1,5 +1,6 @@
 import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
+import { convertPinyin } from '../utils/pinyin'
 
 export default function GrammarPage() {
   const {
@@ -65,7 +66,7 @@ export default function GrammarPage() {
                   <li key={example.id}>
                     <div>
                       <strong style={{ fontFamily: 'var(--font-chinese)', fontSize: 16 }}>{example.content}</strong>
-                      <div className="muted">{example.pinyin}</div>
+                      <div className="muted">{convertPinyin(example.pinyin)}</div>
                       <div style={{ color: 'var(--text-secondary)' }}>{example.meaning}</div>
                     </div>
                   </li>

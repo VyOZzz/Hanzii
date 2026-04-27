@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
 
 export default function AccountPage() {
-  const { loggedIn, user, authenticate, logout, changePassword, setError } = useAppContext()
+  const { loggedIn, user, authenticate, logout, changePassword, setError, notebooks } = useAppContext()
 
   const [authMode, setAuthMode] = useState('login')
   const [authForm, setAuthForm] = useState({ username: '', email: '', password: '' })
@@ -11,7 +11,6 @@ export default function AccountPage() {
   const [authValidation, setAuthValidation] = useState({})
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Change password state
   const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirmNew: '' })
@@ -48,7 +47,6 @@ export default function AccountPage() {
       setAuthForm({ username: '', email: '', password: '' })
       setConfirmPassword('')
       setShowPassword(false)
-      setShowConfirmPassword(false)
     }
     setAuthLoading(false)
   }
@@ -150,7 +148,7 @@ export default function AccountPage() {
                 <div>
                   <input
                     placeholder="Xác nhận mật khẩu"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={authLoading}
@@ -188,10 +186,30 @@ export default function AccountPage() {
           </>
         ) : (
           <div className="stack">
-            <div className="user-box">
-              <strong>{user?.username}</strong>
-              <span>📧 {user?.email}</span>
-              <span>🏷️ Vai trò: {user?.role || 'USER'}</span>
+            {/* Profile card */}
+            <div className="profile-card">
+              <div className="profile-avatar">
+                {(user?.username || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div className="profile-info">
+                <div className="profile-name">{user?.username}</div>
+                <div className="profile-email">📧 {user?.email}</div>
+                <div className="profile-role">🏷️ {user?.role || 'USER'}</div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="stat-grid">
+              <div className="stat-card">
+                <div className="stat-value">{notebooks.length}</div>
+                <div className="stat-label">Sổ tay</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">
+                  {notebooks.reduce((sum, nb) => sum + (nb.wordIds || []).length, 0)}
+                </div>
+                <div className="stat-label">Từ đã lưu</div>
+              </div>
             </div>
 
             {/* Change password */}

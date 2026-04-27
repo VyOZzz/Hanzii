@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class SrsReviewSubmitRequestDTO {
     private Long userId;
     private Long wordId;
-    private boolean remembered;
+    private int rating;
 }

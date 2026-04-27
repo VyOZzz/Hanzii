@@ -4,8 +4,7 @@ import { useAppContext } from '../context/useAppContext'
 
 const navItems = [
   { to: '/dictionary', label: 'Từ điển', icon: '📖' },
-  { to: '/srs', label: 'Ôn tập SRS', icon: '🧠' },
-  { to: '/notebook', label: 'Sổ tay', icon: '📓' },
+  { to: '/notebook', label: 'Sổ tay & Ôn tập', icon: '📓' },
   { to: '/grammar', label: 'Ngữ pháp', icon: '📐' },
   { to: '/translation', label: 'Dịch thuật', icon: '🌐' },
   { to: '/history', label: 'Lịch sử', icon: '🕑' },
@@ -13,7 +12,7 @@ const navItems = [
 ]
 
 export default function AppLayout() {
-  const { loggedIn, user, notice, error, srsDueCards } = useAppContext()
+  const { loggedIn, user, notice, error } = useAppContext()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -45,9 +44,6 @@ export default function AppLayout() {
           >
             <span className="nav-icon">{item.icon}</span>
             <span>{item.label}</span>
-            {item.to === '/srs' && loggedIn && srsDueCards.length > 0 && (
-              <span className="count-badge">{srsDueCards.length}</span>
-            )}
           </NavLink>
         ))}
 

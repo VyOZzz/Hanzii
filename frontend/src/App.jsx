@@ -5,7 +5,6 @@ import DictionaryPage from './pages/DictionaryPage'
 import GrammarPage from './pages/GrammarPage'
 import HistoryPage from './pages/HistoryPage'
 import NotebookPage from './pages/NotebookPage'
-import SrsPage from './pages/SrsPage'
 import TranslationPage from './pages/TranslationPage'
 
 export default function App() {
@@ -13,7 +12,6 @@ export default function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/dictionary" element={<DictionaryPage />} />
-        <Route path="/srs" element={<SrsPage />} />
         <Route path="/notebook" element={<NotebookPage />} />
         <Route path="/grammar" element={<GrammarPage />} />
         <Route path="/history" element={<HistoryPage />} />

@@ -278,14 +278,20 @@ export function AppProvider({ children }) {
     }
   }
 
-  async function handleSrsReview(card, remembered) {
+  async function handleSrsReview(card, rating) {
     if (!loggedIn) return
-    setSrsActionLoading(`${card.cardId}-${remembered ? 'remember' : 'forget'}`)
+    setSrsActionLoading(`${card.cardId}-${rating}`)
     resetMessages()
     try {
-      const updated = await submitSrsReview({ wordId: card.wordId, remembered, token })
+      const updated = await submitSrsReview({ wordId: card.wordId, rating, token })
+      let feedbackText = ''
+      if (rating === 1) feedbackText = 'Học lại'
+      else if (rating === 2) feedbackText = 'Khó'
+      else if (rating === 3) feedbackText = 'Tốt'
+      else if (rating === 4) feedbackText = 'Dễ'
+
       setNotice(
-        `${updated.hanzi}: ${remembered ? 'Đã nhớ' : 'Cần ôn lại'} · ôn tiếp ${new Date(updated.nextReviewAt).toLocaleString('vi-VN')}`,
+        `${updated.hanzi}: ${feedbackText} · ôn tiếp ${new Date(updated.nextReviewAt).toLocaleString('vi-VN')}`,
       )
       await loadSrsDueCards()
     } catch (e) {

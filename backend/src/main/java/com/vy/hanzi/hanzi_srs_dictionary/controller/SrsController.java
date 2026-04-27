@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/srs")
@@ -41,5 +42,38 @@ public class SrsController {
     public ResponseEntity<ApiResponse<SrsReviewCardResponseDTO>> submitReview(@RequestBody SrsReviewSubmitRequestDTO request) {
         request.setUserId(currentUserService.requireUserId());
         return ResponseEntity.ok(ApiResponse.success("Submit SRS review successfully", srsService.submitReview(request)));
+    }
+
+    /**
+     * Ensure all words in a notebook have SRS cards, then return due cards for that notebook.
+     */
+    @PostMapping("/cards/notebook/{notebookId}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> prepareNotebookReview(
+            @PathVariable Long notebookId,
+            @RequestParam(defaultValue = "false") boolean all
+    ) {
+        Long userId = currentUserService.requireUserId();
+        int newCards = srsService.ensureNotebookWordsInSrs(userId, notebookId);
+        List<SrsReviewCardResponseDTO> dueCards = all 
+                ? srsService.getAllCardsByNotebook(userId, notebookId)
+                : srsService.getDueCardsByNotebook(userId, notebookId);
+
+        Map<String, Object> result = Map.of(
+                "newCardsCreated", newCards,
+                "dueCards", dueCards
+        );
+        return ResponseEntity.ok(ApiResponse.success("Notebook review prepared successfully", result));
+    }
+
+    /**
+     * Get due SRS cards for a specific notebook.
+     */
+    @GetMapping("/review/notebook/{notebookId}")
+    public ResponseEntity<ApiResponse<List<SrsReviewCardResponseDTO>>> getDueCardsByNotebook(@PathVariable Long notebookId) {
+        Long userId = currentUserService.requireUserId();
+        return ResponseEntity.ok(ApiResponse.success(
+                "Get notebook due cards successfully",
+                srsService.getDueCardsByNotebook(userId, notebookId)
+        ));
     }
 }

@@ -2,6 +2,7 @@ package com.vy.hanzi.hanzi_srs_dictionary.service;
 
 import com.vy.hanzi.hanzi_srs_dictionary.dto.CreateNotebookRequestDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.NotebookResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.dto.WordResponseDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.Notebook;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.User;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.Word;
@@ -74,6 +75,41 @@ public class NotebookService {
         return toDto(refreshedNotebook);
     }
 
+    @Transactional
+    public NotebookResponseDTO removeWordFromNotebook(Long userId, Long notebookId, Long wordId) {
+        Notebook notebook = notebookRepository.findByIdAndUserId(notebookId, userId)
+                .orElseThrow(() -> new NotFoundException("Notebook not found with id: " + notebookId));
+
+        Word word = wordRepository.findById(wordId)
+                .orElseThrow(() -> new NotFoundException("Word not found with id: " + wordId));
+
+        if (word.getNotebooks() != null) {
+            boolean removed = word.getNotebooks().removeIf(existing -> existing.getId().equals(notebookId));
+            if (removed) {
+                wordRepository.save(word);
+            }
+        }
+
+        // Return the updated notebook state
+        return toDto(notebook);
+    }
+
+    /**
+     * Get all words in a notebook with full word detail.
+     */
+    @Transactional(readOnly = true)
+    public List<WordResponseDTO> getNotebookWords(Long userId, Long notebookId) {
+        Notebook notebook = notebookRepository.findByIdAndUserId(notebookId, userId)
+                .orElseThrow(() -> new NotFoundException("Notebook not found with id: " + notebookId));
+
+        List<Word> words = notebook.getWords();
+        if (words == null || words.isEmpty()) {
+            return List.of();
+        }
+
+        return words.stream().map(this::toWordDto).toList();
+    }
+
     private NotebookResponseDTO toDto(Notebook notebook) {
         return NotebookResponseDTO.builder()
                 .id(notebook.getId())
@@ -81,6 +117,20 @@ public class NotebookService {
                 .createdAt(notebook.getCreatedAt())
                 .userId(notebook.getUser() == null ? null : notebook.getUser().getId())
                 .wordIds(notebook.getWords() == null ? List.of() : notebook.getWords().stream().map(Word::getId).toList())
+                .build();
+    }
+
+    private WordResponseDTO toWordDto(Word word) {
+        return WordResponseDTO.builder()
+                .id(word.getId())
+                .hanzi(word.getHanzi())
+                .pinyin(word.getPinyin())
+                .meaning(word.getMeaning())
+                .sinoVietnamese(word.getSinoVietnamese())
+                .hskLevel(word.getHskLevel())
+                .strokeCount(word.getStrokeCount())
+                .audioUrl(word.getAudioUrl())
+                .wordTypes(word.getTypes() == null ? List.of() : word.getTypes().stream().map(t -> t.getName()).toList())
                 .build();
     }
 }

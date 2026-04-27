@@ -1,3 +1,5 @@
+import { convertPinyin } from '../utils/pinyin'
+
 export default function WordList({ items, onSelectWord }) {
   if (!items.length) return <p className="muted">No words found.</p>
 
@@ -7,7 +9,7 @@ export default function WordList({ items, onSelectWord }) {
         <li key={word.id}>
           <button type="button" className="word-item" onClick={() => onSelectWord(word.id)}>
             <strong>{word.hanzi}</strong>
-            <span>{word.pinyin}</span>
+            <span>{convertPinyin(word.pinyin)}</span>
             <span>{word.meaning}</span>
           </button>
         </li>
