@@ -34,7 +34,7 @@ export function AppProvider({ children }) {
   const [notice, setNotice] = useState('')
 
   const [searchKeyword, setSearchKeyword] = useState('')
-  const [searchState, setSearchState] = useState({ items: [], page: 0, totalPages: 1, loading: false })
+  const [searchState, setSearchState] = useState({ items: [], page: 0, totalPages: 1, loading: false, hasSearched: false })
 
   const [detailLoading, setDetailLoading] = useState(false)
   const [wordDetail, setWordDetail] = useState(null)
@@ -145,7 +145,7 @@ export function AppProvider({ children }) {
 
   async function loadSearch(page) {
     if (!searchKeyword.trim()) {
-      setSearchState({ items: [], page: 0, totalPages: 1, loading: false })
+      setSearchState({ items: [], page: 0, totalPages: 1, loading: false, hasSearched: false })
       return
     }
 
@@ -153,9 +153,9 @@ export function AppProvider({ children }) {
     resetMessages()
     try {
       const result = await searchWords({ keyword: searchKeyword.trim(), page, size: PAGE_SIZE, token })
-      setSearchState({ items: result.items, page: result.page, totalPages: result.totalPages, loading: false })
+      setSearchState({ items: result.items, page: result.page, totalPages: result.totalPages, loading: false, hasSearched: true })
     } catch (e) {
-      setSearchState((prev) => ({ ...prev, loading: false }))
+      setSearchState((prev) => ({ ...prev, loading: false, hasSearched: true }))
       handleApiError(e)
     }
   }

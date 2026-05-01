@@ -79,10 +79,10 @@ export default function AccountPage() {
     <div className="column">
       <article className="card fade-in">
         <div className="row between">
-          <h2><span className="card-icon">👤</span> Tài khoản</h2>
+          <h2>Tài khoản</h2>
           {loggedIn && (
             <button type="button" className="btn-ghost btn-icon" onClick={logout}>
-              <span className="icon">🚪</span> Đăng xuất
+              Đăng xuất
             </button>
           )}
         </div>
@@ -193,8 +193,8 @@ export default function AccountPage() {
               </div>
               <div className="profile-info">
                 <div className="profile-name">{user?.username}</div>
-                <div className="profile-email">📧 {user?.email}</div>
-                <div className="profile-role">🏷️ {user?.role || 'USER'}</div>
+                <div className="profile-email">{user?.email}</div>
+                <div className="profile-role">{user?.role || 'USER'}</div>
               </div>
             </div>
 
@@ -214,7 +214,7 @@ export default function AccountPage() {
 
             {/* Change password */}
             <div className="change-pw-section">
-              <h3>🔑 Đổi mật khẩu</h3>
+              <h3>Đổi mật khẩu</h3>
               <form className="stack" onSubmit={handleChangePassword}>
                 <div>
                   <input

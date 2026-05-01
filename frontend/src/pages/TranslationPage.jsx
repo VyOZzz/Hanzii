@@ -66,7 +66,7 @@ export default function TranslationPage() {
     <div className="column">
       {/* Translate form */}
       <article className="card card-accent fade-in">
-        <h2><span className="card-icon">🌐</span> Dịch văn bản</h2>
+        <h2>Dịch văn bản</h2>
 
         <form onSubmit={handleSave}>
           <div className="lang-select" style={{ marginBottom: 12 }}>
@@ -112,7 +112,7 @@ export default function TranslationPage() {
               onClick={handleAutoTranslate}
               style={{ flex: 1 }}
             >
-              <span className="icon">🔄</span> {translating ? 'Đang dịch...' : 'Dịch'}
+              {translating ? 'Đang dịch...' : 'Dịch'}
             </button>
             {loggedIn && (
               <button
@@ -121,7 +121,7 @@ export default function TranslationPage() {
                 disabled={saving || !sourceText.trim() || !translatedText.trim()}
                 style={{ flex: 1 }}
               >
-                <span className="icon">💾</span> {saving ? 'Đang lưu...' : 'Lưu bản dịch'}
+                {saving ? 'Đang lưu...' : 'Lưu bản dịch'}
               </button>
             )}
           </div>
@@ -131,14 +131,14 @@ export default function TranslationPage() {
       {/* Translation history */}
       <article className="card fade-in fade-in-delay-1">
         <div className="row between">
-          <h2><span className="card-icon">📋</span> Lịch sử dịch</h2>
+          <h2>Lịch sử dịch</h2>
           <button
             type="button"
             className="btn-ghost btn-icon"
             onClick={() => loadTranslations()}
             disabled={!loggedIn || translationLoading}
           >
-            <span className="icon">🔄</span> Làm mới
+            Làm mới
           </button>
         </div>
 
@@ -148,7 +148,6 @@ export default function TranslationPage() {
           <SkeletonBlock lines={4} />
         ) : translationItems.length === 0 ? (
           <StateMessage>
-            <div className="empty-graphic">📝</div>
             Chưa có bản dịch nào. Hãy dịch văn bản đầu tiên!
           </StateMessage>
         ) : (
