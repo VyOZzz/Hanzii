@@ -8,27 +8,25 @@ export default function HistoryPage() {
     <div className="column">
       <article className="card fade-in">
         <div className="row between">
-          <h2><span className="card-icon">🕑</span> Lịch sử tra cứu</h2>
+          <h2>Lịch sử tra cứu</h2>
           <button
             type="button"
             className="btn-ghost btn-icon"
             onClick={() => loadSearchHistory()}
             disabled={!loggedIn || historyLoading}
           >
-            <span className="icon">🔄</span> Làm mới
+            Làm mới
           </button>
         </div>
 
         {!loggedIn ? (
           <StateMessage>
-            <div className="empty-graphic">🔒</div>
             Đăng nhập để xem lịch sử tra cứu.
           </StateMessage>
         ) : historyLoading ? (
           <SkeletonBlock lines={4} />
         ) : historyItems.length === 0 ? (
           <StateMessage>
-            <div className="empty-graphic">🔍</div>
             Chưa có lịch sử tra cứu. Hãy tra từ để bắt đầu!
           </StateMessage>
         ) : (

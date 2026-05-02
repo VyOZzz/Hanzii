@@ -77,3 +77,18 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
 - Tách CSS thành `components.css` và `layout.css` để dễ bảo trì.
 - Cập nhật `AppContext` và `AppLayout` theo luồng dữ liệu mới.
 - Xóa `SrsPage` cũ, gộp logic SRS vào `NotebookPage`.
+
+---
+
+### Tuần 7 — 28/4/2026 đến 1/5/2026
+- Thiết kế lại toàn bộ giao diện frontend theo phong cách của trang Hanzii.net (light theme, tông Navy Blue).
+- Chuyển đổi cấu trúc layout từ **Sidebar** sang **Top Navigation Bar** (`AppLayout.jsx`, `layout.css`).
+- Cập nhật `base.css`: loại bỏ Dark theme cũ, đổi bảng màu sang Light Theme (`#F8F9FC`, `#3498DB`, `#2C3E50`), chuẩn hóa bo góc và đổ bóng.
+- Viết lại `DictionaryPage.jsx`: thêm Hero Search Section với thanh tìm kiếm bo tròn, Filter Chips nằm ngang, bố cục 2 cột (Main + Sidebar phụ).
+- Bổ sung các class CSS mới trong `components.css`: `.hero-search-section`, `.search-input-wrapper`, `.hero-chip`, `.main-grid`, `.side-col`.
+- Cải thiện logic hiển thị kết quả tìm kiếm: thêm trạng thái `hasSearched` trong `AppContext` để phân biệt giữa "chưa tìm" và "tìm nhưng không có kết quả".
+- Thêm tính năng auto-suggest (gợi ý từ khi gõ) với debounce 400ms vào thanh tìm kiếm.
+- Downgrade Vite và `@vitejs/plugin-react` để tương thích Node.js 20.14.0.
+- Cấu hình `application.properties`: thêm kết nối MySQL, JWT secret, Hibernate dialect.
+- Loại bỏ toàn bộ emoji/icon khỏi giao diện (tiêu đề, nút bấm, thông báo trạng thái) trên tất cả các trang: Dictionary, Notebook, Grammar, History, Translation, Account.
+- Làm sạch thanh điều hướng Topbar: chỉ giữ lại text thuần, không còn icon emoji.

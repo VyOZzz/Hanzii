@@ -18,9 +18,9 @@ export default function GrammarPage() {
     <div className="column">
       <article className="card fade-in">
         <div className="row between">
-          <h2><span className="card-icon">📐</span> Ngữ pháp tiếng Trung</h2>
+          <h2>Ngữ pháp tiếng Trung</h2>
           <button type="button" className="btn-ghost btn-icon" onClick={loadGrammarPoints} disabled={grammarLoading}>
-            <span className="icon">🔄</span> Làm mới
+            Làm mới
           </button>
         </div>
 
@@ -28,7 +28,7 @@ export default function GrammarPage() {
           <SkeletonBlock lines={4} />
         ) : grammarPoints.length === 0 ? (
           <StateMessage>
-            <div className="empty-graphic">📚</div>
+            <div className="empty-graphic"></div>
             Chưa có điểm ngữ pháp nào.
           </StateMessage>
         ) : (
@@ -57,7 +57,7 @@ export default function GrammarPage() {
               </div>
             )}
 
-            <h3 className="subheading">📝 Ví dụ</h3>
+            <h3 className="subheading">Ví dụ</h3>
             {grammarExamples.length === 0 ? (
               <StateMessage>Chưa có ví dụ cho điểm ngữ pháp này.</StateMessage>
             ) : (

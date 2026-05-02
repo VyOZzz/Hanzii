@@ -799,15 +799,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 12px 4px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 14px;
-  border: none;
-  color: #fff;
-  cursor: pointer;
   transition: all var(--duration) var(--ease);
 }
 
@@ -983,3 +974,144 @@
     text-align: left;
   }
 }
+
+/* ── Hero Search Section ── */
+.dictionary-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xl);
+  width: 100%;
+}
+
+.hero-search-section {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 48px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.hero-search-form {
+  max-width: 640px;
+  margin: 0 auto 24px;
+  position: relative;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  background: #fff;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border: 2px solid transparent;
+  transition: all var(--duration) var(--ease);
+}
+
+.search-input-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px rgba(52, 152, 219, 0.15);
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+.hero-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 18px 20px 18px 52px;
+  font-size: 16px;
+  border-radius: var(--radius-pill);
+}
+
+.hero-search-input:focus {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+.hero-search-btn {
+  margin: 6px;
+  border-radius: var(--radius-pill);
+  padding: 0 32px;
+  font-size: 16px;
+}
+
+.hero-chips {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-chip {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration) var(--ease);
+}
+
+.hero-chip:hover {
+  background: #E2E8F0;
+  color: var(--text-primary);
+}
+
+.hero-chip.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* ── Main Grid ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--gap-xl);
+  align-items: start;
+}
+
+.main-col {
+  display: grid;
+  gap: var(--gap-lg);
+}
+
+.side-col {
+  display: grid;
+  gap: var(--gap-lg);
+  position: sticky;
+  top: 100px;
+}
+
+@media (max-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+  .side-col {
+    position: static;
+  }
+}
+

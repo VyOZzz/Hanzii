@@ -103,7 +103,7 @@ export default function NotebookPage() {
       const result = await prepareNotebookReview({ notebookId: activeNotebookId, all, token })
       const dueCards = Array.isArray(result.dueCards) ? result.dueCards : []
       if (dueCards.length === 0) {
-        setNotice(all ? 'Sổ tay hiện không có từ nào!' : 'Không có thẻ nào cần ôn tập trong sổ tay này! 🎉')
+        setNotice(all ? 'Sổ tay hiện không có từ nào!' : 'Không có thẻ nào cần ôn tập trong sổ tay này!')
         setReviewLoading(false)
         return
       }
@@ -177,7 +177,7 @@ export default function NotebookPage() {
             <div>
               <p className="section-eyebrow">Đang ôn tập · {activeNotebook?.title}</p>
               <h2 style={{ margin: 0 }}>
-                <span className="card-icon">🧠</span> Thẻ {currentIndex + 1} / {reviewCards.length}
+                Thẻ {currentIndex + 1} / {reviewCards.length}
               </h2>
             </div>
             <button type="button" className="btn-ghost" onClick={exitReview}>✕ Thoát</button>
@@ -297,7 +297,7 @@ export default function NotebookPage() {
     <div className="column">
       <article className="card fade-in">
         <div className="row between">
-          <h2><span className="card-icon">📓</span> Sổ tay & Ôn tập</h2>
+          <h2>Sổ tay & Ôn tập</h2>
           <div className="row" style={{ gap: 8 }}>
             <button
               type="button"
@@ -306,7 +306,7 @@ export default function NotebookPage() {
               disabled={!loggedIn}
               title="Cài đặt flashcard"
             >
-              <span className="icon">⚙️</span>
+              Cài đặt
             </button>
             <button
               type="button"
@@ -314,7 +314,7 @@ export default function NotebookPage() {
               onClick={() => loadNotebooks()}
               disabled={!loggedIn || notebookLoading}
             >
-              <span className="icon">🔄</span> Tải lại
+              Tải lại
             </button>
           </div>
         </div>
@@ -355,7 +355,6 @@ export default function NotebookPage() {
 
         {!loggedIn ? (
           <StateMessage>
-            <div className="empty-graphic">🔒</div>
             Đăng nhập để quản lý sổ tay và ôn tập.
           </StateMessage>
         ) : (
@@ -368,7 +367,7 @@ export default function NotebookPage() {
                 required
               />
               <button type="submit" className="btn-primary btn-icon">
-                <span className="icon">➕</span> Tạo mới
+                Tạo mới
               </button>
             </form>
 
@@ -376,7 +375,6 @@ export default function NotebookPage() {
               <SkeletonBlock lines={3} />
             ) : notebooks.length === 0 ? (
               <StateMessage>
-                <div className="empty-graphic">📭</div>
                 Chưa có sổ tay nào. Tạo sổ tay đầu tiên ở trên!
               </StateMessage>
             ) : (
@@ -415,7 +413,6 @@ export default function NotebookPage() {
                               onClick={() => startReview(false)}
                               disabled={reviewLoading}
                             >
-                              <span className="icon">🧠</span>
                               {reviewLoading ? 'Đang chuẩn bị...' : 'Bắt đầu ôn tập'}
                             </button>
                             <button
@@ -425,14 +422,13 @@ export default function NotebookPage() {
                               onClick={() => startReview(true)}
                               disabled={reviewLoading}
                             >
-                              <span className="icon">⚡</span>
                               {reviewLoading ? 'Đang chuẩn bị...' : 'Học toàn bộ'}
                             </button>
                           </div>
                         )}
 
                         {/* Words in notebook */}
-                        <div className="subheading">📚 Từ vựng trong sổ tay</div>
+                        <div className="subheading">Từ vựng trong sổ tay</div>
                         {wordsLoading ? (
                           <SkeletonBlock lines={3} />
                         ) : notebookWords.length === 0 ? (
@@ -456,7 +452,7 @@ export default function NotebookPage() {
                                   }}
                                   title="Xoá khỏi sổ"
                                 >
-                                  🗑️
+                                  Xoá
                                 </button>
                               </li>
                             ))}

@@ -1,131 +1,63 @@
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useAppContext } from '../context/useAppContext'
 
 const navItems = [
-  { to: '/dictionary', label: 'Từ điển', icon: '🔍' },
-  { to: '/notebook', label: 'Sổ tay & Ôn tập', icon: '📓' },
-  { to: '/grammar', label: 'Ngữ pháp', icon: '📐' },
-  { to: '/translation', label: 'Dịch thuật', icon: '🌐' },
-  { to: '/history', label: 'Lịch sử', icon: '🕑' },
+  { to: '/dictionary', label: 'Từ điển' },
+  { to: '/notebook', label: 'Sổ tay & Ôn tập' },
+  { to: '/grammar', label: 'Ngữ pháp' },
+  { to: '/translation', label: 'Dịch thuật' },
+  { to: '/history', label: 'Lịch sử' },
+  { to: '/account', label: 'Tài khoản' },
 ]
 
 export default function AppLayout() {
-  const { loggedIn, user, notice, error, logout } = useAppContext()
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const navigate = useNavigate()
-
-  function handleGoAccount() {
-    navigate('/account')
-    setDrawerOpen(false)
-  }
+  const { loggedIn, user, notice, error } = useAppContext()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
     <div className="app-shell">
-      {/* ── Top Navigation ── */}
-      <nav className="topnav">
-        {/* Mobile toggle */}
-        <button
-          className="mobile-toggle"
-          onClick={() => setDrawerOpen(!drawerOpen)}
-          aria-label="Open menu"
-        >
-          ☰
-        </button>
-
-        {/* Brand */}
-        <NavLink to="/dictionary" className="nav-brand">
-          <div className="nav-brand-icon">漢</div>
-          <div className="nav-brand-text">
-            <span className="brand-name">Hanzii</span>
-            <span className="brand-sub">Học tiếng Trung</span>
-          </div>
+      {/* Topbar */}
+      <header className="topbar">
+        <NavLink to="/dictionary" className="topbar-brand">
+          <span className="brand-icon">漢</span>
+          <h1>Hanzii</h1>
         </NavLink>
 
-        {/* Center nav links */}
-        <div className="nav-links">
+        {/* Desktop Menu */}
+        <nav className="topbar-menu">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
-              <span className="nav-icon">{item.icon}</span>
-              {item.label}
+              <span>{item.label}</span>
             </NavLink>
           ))}
-        </div>
+        </nav>
 
-        {/* Right area */}
-        <div className="nav-right">
+        <div className="topbar-actions">
           {loggedIn ? (
-            <>
-              <div className="nav-user-avatar" title={user?.username}>
-                {(user?.username || 'U').charAt(0).toUpperCase()}
-              </div>
-              <span className="nav-username">{user?.username}</span>
-              <button className="btn-ghost nav-btn-register" onClick={handleGoAccount}>
-                Tài khoản
-              </button>
-              <button className="btn-ghost nav-btn-register" onClick={logout} style={{ color: 'var(--text-muted)' }}>
-                Đăng xuất
-              </button>
-            </>
+            <div className="user-pill">
+              <div className="avatar">{(user?.username || 'U').charAt(0).toUpperCase()}</div>
+              <div className="user-name">{user?.username}</div>
+            </div>
           ) : (
-            <>
-              <button className="btn-ghost nav-btn-register" onClick={() => navigate('/account')}>
-                Đăng ký
-              </button>
-              <button className="btn-primary nav-btn-login" onClick={() => navigate('/account')}>
-                Đăng nhập
-              </button>
-            </>
+            <div className="guest-pill">Chế độ khách</div>
           )}
+          <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            ☰
+          </button>
         </div>
-      </nav>
+      </header>
 
-      {/* ── Mobile Overlay + Drawer ── */}
-      <div
-        className={`mobile-overlay ${drawerOpen ? 'open' : ''}`}
-        onClick={() => setDrawerOpen(false)}
-      />
-      <div className={`mobile-drawer ${drawerOpen ? 'open' : ''}`}>
-        <NavLink to="/dictionary" className="nav-brand" style={{ marginBottom: 12 }} onClick={() => setDrawerOpen(false)}>
-          <div className="nav-brand-icon">漢</div>
-          <div className="nav-brand-text">
-            <span className="brand-name">Hanzii</span>
-            <span className="brand-sub">Học tiếng Trung</span>
-          </div>
-        </NavLink>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={() => setDrawerOpen(false)}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            {item.label}
-          </NavLink>
-        ))}
-        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--border)', display: 'grid', gap: 8 }}>
-          {loggedIn ? (
-            <>
-              <button className="btn-ghost" onClick={() => { handleGoAccount() }}>👤 Tài khoản</button>
-              <button className="btn-ghost" onClick={() => { logout(); setDrawerOpen(false) }}>Đăng xuất</button>
-            </>
-          ) : (
-            <>
-              <button className="btn-primary" onClick={() => { navigate('/account'); setDrawerOpen(false) }}>Đăng nhập</button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ── Page Content ── */}
+      {/* Main Content Area */}
       <main className="main-content">
-        {notice && <div className="notice ok">✅ {notice}</div>}
-        {error && <div className="notice error">⚠️ {error}</div>}
+        {notice && <div className="notice ok">{notice}</div>}
+        {error && <div className="notice error">{error}</div>}
+
+        {/* Page content */}
         <Outlet />
       </main>
     </div>
