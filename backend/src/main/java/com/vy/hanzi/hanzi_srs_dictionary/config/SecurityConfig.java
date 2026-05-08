@@ -39,9 +39,11 @@ public class SecurityConfig {
                                 "/api/words/{id}",
                                 "/api/words/filter",
                                 "/api/words/filter/paged",
+                                "/api/words/suggest",
                                 "/api/grammar-points",
                                 "/api/grammar-points/**",
-                                "/api/grammar-examples/**"
+                                "/api/grammar-examples/**",
+                                "/api/ai/chat"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

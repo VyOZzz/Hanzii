@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAppContext } from '../context/useAppContext'
+import AITutorWidget from '../components/AITutorWidget'
 
 const navItems = [
   { to: '/dictionary', label: 'Từ điển' },
@@ -57,8 +58,10 @@ export default function AppLayout() {
         {notice && <div className="notice ok">{notice}</div>}
         {error && <div className="notice error">{error}</div>}
 
-        {/* Page content */}
         <Outlet />
+        
+        {/* Floating AI Tutor Widget */}
+        <AITutorWidget />
       </main>
     </div>
   )

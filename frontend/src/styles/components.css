@@ -136,6 +136,8 @@
 .word-item span:last-child {
   color: var(--text-muted);
   font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* ── Pagination ── */
@@ -615,10 +617,10 @@
 
 .notebook-word-item {
   display: grid;
-  grid-template-columns: auto 1fr 2fr;
+  grid-template-columns: minmax(80px, 15%) minmax(100px, 20%) 1fr auto;
   gap: 12px;
-  align-items: center;
-  padding: 8px 12px;
+  align-items: start;
+  padding: 12px 16px;
   border-radius: var(--radius-sm);
   background: var(--bg-glass);
   transition: background var(--duration) var(--ease);
@@ -633,17 +635,22 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.4;
 }
 
 .nw-pinyin {
   font-size: 13px;
   color: var(--text-gold);
+  line-height: 1.4;
+  padding-top: 2px;
 }
 
 .nw-meaning {
   font-size: 13px;
   color: var(--text-secondary);
-  text-align: right;
+  text-align: left;
+  line-height: 1.5;
+  padding-top: 2px;
 }
 
 /* ── Notebook Settings ── */
@@ -708,6 +715,11 @@
   transition: transform 0.5s var(--ease), box-shadow 0.3s var(--ease);
 }
 
+.flashcard ::selection {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
 .flashcard:hover {
   box-shadow: var(--shadow-glow), var(--shadow-lg);
 }
@@ -764,20 +776,20 @@
 
 .flashcard-meaning {
   font-size: 16px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
   max-width: 400px;
 }
 
 .flashcard-hint {
   font-size: 12px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
 
 .flashcard-meta {
   font-size: 11px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 4px;
 }
 
@@ -1097,6 +1109,7 @@
 .main-col {
   display: grid;
   gap: var(--gap-lg);
+  min-width: 0;
 }
 
 .side-col {
@@ -1104,6 +1117,7 @@
   gap: var(--gap-lg);
   position: sticky;
   top: 100px;
+  min-width: 0;
 }
 
 @media (max-width: 1024px) {

@@ -34,6 +34,16 @@ public class WordService {
         return words.map(this::convertToDTO);
     }
 
+    public Page<WordResponseDTO> suggestWords(String keyword, Pageable pageable) {
+        String strippedPinyin = keyword != null ? keyword.replaceAll("\\s+", "") : "";
+        Page<Word> words = wordRepository.suggestWords(
+                keyword,
+                strippedPinyin,
+                pageable
+        );
+        return words.map(this::convertToDTO);
+    }
+
     private WordResponseDTO convertToDTO(Word word) {
         return WordResponseDTO.builder()
                 .id(word.getId())
@@ -145,6 +155,10 @@ public class WordService {
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
                         .collect(java.util.stream.Collectors.joining(", "));
+                
+                meaning = meaning.replaceAll("[\\u4E00-\\u9FA5]+", "")
+                                 .replaceAll("\\s*\\[[a-zA-Z0-9\\s]*\\]", "")
+                                 .trim();
                 Word word = Word.builder()
                         .hanzi(simplified)
                         .pinyin(pinyin)
@@ -195,6 +209,10 @@ public class WordService {
                       .map(String::trim)
                       .filter(s -> !s.isEmpty())
                       .collect(java.util.stream.Collectors.joining(", "));
+                
+                meaning = meaning.replaceAll("[\\u4E00-\\u9FA5]+", "")
+                                 .replaceAll("\\s*\\[[a-zA-Z0-9\\s]*\\]", "")
+                                 .trim();
                 dictMap.put(simplified + "|" + pinyin, meaning);
             }
             log.info("Loaded {} definitions. Updating DB...", dictMap.size());

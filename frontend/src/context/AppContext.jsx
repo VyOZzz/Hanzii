@@ -72,6 +72,21 @@ export function AppProvider({ children }) {
     setNotice('')
   }
 
+  // Tự động ẩn thông báo sau 3 giây
+  useEffect(() => {
+    if (notice) {
+      const timer = setTimeout(() => setNotice(''), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [notice])
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [error])
+
   function handleApiError(e) {
     setError(e instanceof Error ? e.message : 'Unexpected error')
   }
@@ -240,13 +255,18 @@ export function AppProvider({ children }) {
     if (!loggedIn || !wordDetail || !selectedNotebookId) return
     resetMessages()
     try {
+      // Lưu vào sổ tay
       const updated = await addWordToNotebook({
         notebookId: Number(selectedNotebookId),
         wordId: wordDetail.id,
         token,
       })
-      setNotice(`Đã thêm vào sổ tay: ${updated.title}`)
+      // ĐỒNG THỜI tự động đưa vào SRS để học ngắt quãng
+      await addWordToSrs({ wordId: wordDetail.id, token })
+
+      setNotice(`Đã thêm "${wordDetail.hanzi}" vào sổ và bắt đầu lộ trình học (SRS)!`)
       await loadNotebooks()
+      await loadSrsDueCards()
     } catch (e) {
       handleApiError(e)
     }

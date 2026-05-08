@@ -74,13 +74,13 @@ async function request(path, { method = 'GET', body, token, headers } = {}) {
     })
   } catch (networkError) {
     // Fetch itself failed — backend không chạy hoặc mất mạng
-    throw new Error('Không thể kết nối đến server. Hãy kiểm tra backend đang chạy tại localhost:8080.')
+    throw new Error('Không thể kết nối đến server. Hãy kiểm tra backend đang chạy tại localhost:8081.')
   }
 
   // Nếu backend trả về HTML (ví dụ Vite 404 page khi proxy fail)
   const contentType = response.headers.get('content-type') || ''
   if (contentType.includes('text/html')) {
-    throw new Error('Không thể kết nối đến server. Hãy kiểm tra backend đang chạy tại localhost:8080.')
+    throw new Error('Không thể kết nối đến server. Hãy kiểm tra backend đang chạy tại localhost:8081.')
   }
 
   const text = await response.text()
@@ -142,6 +142,12 @@ export async function changePasswordApi({ oldPassword, newPassword, token }) {
 }
 
 /* ── Words ── */
+
+export async function suggestWords({ keyword, page, size, token }) {
+  const params = new URLSearchParams({ keyword, page: String(page), size: String(size) })
+  const payload = await request(`/api/words/suggest?${params.toString()}`, { token })
+  return mapPageEnvelope(payload)
+}
 
 export async function searchWords({ keyword, page, size, token }) {
   const params = new URLSearchParams({ keyword, page: String(page), size: String(size) })
@@ -238,6 +244,14 @@ export async function getGrammarExamplesByPointId(grammarPointId) {
   return Array.isArray(payload.data) ? payload.data : []
 }
 
+/* ── AI ── */
+
+export async function analyzeWordGrammar({ hanzi, pinyin, meaning }) {
+  const message = `Hãy phân tích cấu trúc ngữ pháp, cách dùng của từ tiếng Trung sau đây (giải thích ngắn gọn, dễ hiểu), đồng thời đưa ra 2 câu ví dụ có phiên âm và dịch nghĩa.\nTừ: ${hanzi}\nPinyin: ${pinyin}\nNghĩa: ${meaning}`
+  const payload = await request('/api/ai/chat', { method: 'POST', body: { message } })
+  return payload.data
+}
+
 /* ── History ── */
 
 export async function getSearchHistory(token) {
@@ -299,5 +313,11 @@ export async function translateTextApi({ sourceText, translatedText, sourceLangu
     body: { sourceText, translatedText, sourceLanguage, targetLanguage },
     token,
   })
+  return payload.data
+}
+
+/* ── AI Tutor ── */
+export async function chatWithAITutor(message) {
+  const payload = await request('/api/ai/chat', { method: 'POST', body: { message } })
   return payload.data
 }

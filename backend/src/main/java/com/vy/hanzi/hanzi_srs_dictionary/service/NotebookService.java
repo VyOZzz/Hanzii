@@ -19,12 +19,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vy.hanzi.hanzi_srs_dictionary.entity.SrsReviewCard;
+import com.vy.hanzi.hanzi_srs_dictionary.repository.SrsReviewCardRepository;
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @RequiredArgsConstructor
 public class NotebookService {
     private final NotebookRepository notebookRepository;
     private final UserRepository userRepository;
     private final WordRepository wordRepository;
+    private final SrsReviewCardRepository srsReviewCardRepository;
+    private final GeminiService geminiService;
 
     @Transactional
     public NotebookResponseDTO createNotebook(CreateNotebookRequestDTO request) {
@@ -71,6 +77,28 @@ public class NotebookService {
                 .filter(existing -> existing.getId().equals(notebookId))
                 .findFirst()
                 .orElse(notebook);
+
+        // --- Personalize AI Custom Examples ---
+        // Ensure SRS card exists, then generate examples in the background
+        SrsReviewCard card = srsReviewCardRepository.findByUserIdAndWordId(userId, wordId)
+                .orElseGet(() -> SrsReviewCard.builder()
+                        .user(userRepository.getReferenceById(userId))
+                        .word(saved)
+                        .repetition(0)
+                        .intervalDays(0)
+                        .nextReviewAt(LocalDateTime.now())
+                        .build());
+        
+        if (card.getCustomExamples() == null || card.getCustomExamples().isBlank()) {
+            srsReviewCardRepository.save(card);
+            CompletableFuture.runAsync(() -> {
+                String prompt = String.format("Tạo 3 câu ví dụ tiếng Trung giao tiếp thực tế chứa từ '%s' (pinyin: %s, nghĩa: %s), phù hợp với người học ở cấp độ HSK %s hoặc theo sở thích thông thường (ví dụ: du lịch, công việc). Định dạng: Hán tự - Pinyin - Dịch nghĩa tiếng Việt.", 
+                        saved.getHanzi(), saved.getPinyin(), saved.getMeaning(), saved.getHskLevel() > 0 ? String.valueOf(saved.getHskLevel()) : "cơ bản");
+                String aiExamples = geminiService.chatWithTutor(prompt);
+                card.setCustomExamples(aiExamples);
+                srsReviewCardRepository.save(card);
+            });
+        }
 
         return toDto(refreshedNotebook);
     }

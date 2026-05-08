@@ -3,6 +3,7 @@ import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
 import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord } from '../api'
 import { convertPinyin } from '../utils/pinyin'
+import { formatMeaning } from '../utils/meaning'
 
 function calcNextInterval(rating, currentInterval, repetition) {
   if (rating === 1) return 1
@@ -193,12 +194,15 @@ export default function NotebookPage() {
 
           {/* Flashcard */}
           <div className="flashcard-container">
-            <div className={`flashcard ${cardFlipped ? 'flipped' : ''}`}>
+            <div 
+              className={`flashcard ${cardFlipped ? 'flipped' : ''}`}
+              onClick={() => !cardFlipped && setCardFlipped(true)}
+            >
               {/* Front */}
               <div className="flashcard-front">
                 {settings.cardMode === 'reverse' ? (
-                  <div className="flashcard-meaning" style={{ fontSize: 28, color: 'var(--text-primary)' }}>
-                    {currentCard.meaning}
+                  <div className="flashcard-meaning" style={{ fontSize: 28, color: '#fff' }}>
+                    {formatMeaning(currentCard.meaning, 5)}
                   </div>
                 ) : (
                   <div className="flashcard-hanzi">{currentCard.hanzi}</div>
@@ -221,8 +225,17 @@ export default function NotebookPage() {
                     {settings.showPinyin && (
                       <div className="flashcard-pinyin">{convertPinyin(currentCard.pinyin)}</div>
                     )}
-                    <div className="flashcard-meaning">{currentCard.meaning}</div>
+                    <div className="flashcard-meaning">{formatMeaning(currentCard.meaning, 5)}</div>
                   </>
+                )}
+                
+                {currentCard.customExamples && (
+                  <div className="flashcard-examples" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border)', textAlign: 'left' }}>
+                    <div className="section-eyebrow" style={{ color: 'var(--primary)', marginBottom: '8px' }}>✨ Câu ví dụ cá nhân hóa (AI)</div>
+                    <div style={{ fontSize: '1rem', whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-light)' }}>
+                      {currentCard.customExamples}
+                    </div>
+                  </div>
                 )}
                 {settings.showMeta && (
                   <div className="flashcard-meta">
@@ -438,10 +451,10 @@ export default function NotebookPage() {
                         ) : (
                           <ul className="notebook-word-list">
                             {notebookWords.map((word) => (
-                              <li key={word.id} className="notebook-word-item" style={{ gridTemplateColumns: 'auto 1fr 2fr auto' }}>
+                              <li key={word.id} className="notebook-word-item">
                                 <span className="nw-hanzi">{word.hanzi}</span>
                                 <span className="nw-pinyin">{convertPinyin(word.pinyin)}</span>
-                                <span className="nw-meaning">{word.meaning}</span>
+                                <span className="nw-meaning">{formatMeaning(word.meaning)}</span>
                                 <button
                                   type="button"
                                   className="btn-ghost btn-icon"

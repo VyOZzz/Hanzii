@@ -38,4 +38,7 @@ public class SrsReviewCard {
 
     @Column(name = "last_reviewed_at")
     private LocalDateTime lastReviewedAt;
+
+    @Column(name = "custom_examples", columnDefinition = "TEXT")
+    private String customExamples;
 }

@@ -47,6 +47,19 @@ public class WordController {
         return ResponseEntity.ok(ApiResponse.success("Search words successfully", result, meta));
     }
 
+    // API gợi ý: localhost:8080/api/words/suggest?keyword=hao&page=0&size=5
+    @GetMapping("/suggest")
+    public ResponseEntity<ApiResponse<Page<WordResponseDTO>>> suggest(@RequestParam String keyword, Pageable pageable) {
+        Page<WordResponseDTO> result = wordService.suggestWords(keyword, pageable);
+        Map<String, Object> meta = Map.of(
+                "page", result.getNumber(),
+                "size", result.getSize(),
+                "totalElements", result.getTotalElements(),
+                "totalPages", result.getTotalPages()
+        );
+        return ResponseEntity.ok(ApiResponse.success("Suggest words successfully", result, meta));
+    }
+
     // API lấy chi tiết 1 từ: localhost:8080/api/words/1
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<WordResponseDTO>> getDetail(@PathVariable Long id) {

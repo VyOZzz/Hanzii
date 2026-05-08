@@ -236,6 +236,7 @@ public class SrsService {
                 .repetition(card.getRepetition())
                 .intervalDays(card.getIntervalDays())
                 .nextReviewAt(card.getNextReviewAt())
+                .customExamples(card.getCustomExamples())
                 .build();
     }
 }

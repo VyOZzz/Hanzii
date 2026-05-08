@@ -92,3 +92,18 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
 - Cấu hình `application.properties`: thêm kết nối MySQL, JWT secret, Hibernate dialect.
 - Loại bỏ toàn bộ emoji/icon khỏi giao diện (tiêu đề, nút bấm, thông báo trạng thái) trên tất cả các trang: Dictionary, Notebook, Grammar, History, Translation, Account.
 - Làm sạch thanh điều hướng Topbar: chỉ giữ lại text thuần, không còn icon emoji.
+
+---
+
+### Tuần 8 — 2/5/2026 đến 8/5/2026
+- **Tối ưu hóa hiệu năng Database & Server:** Phân tích và vô hiệu hóa tiến trình `fixDictionaryMeanings` (quét hơn 120.000 từ) lúc khởi động server, khắc phục triệt để tình trạng ứng dụng bị treo và timeout do database lock.
+- **Tối ưu SQL Queries:** Viết lại toàn bộ native query trong `WordRepository`, loại bỏ các hàm xử lý chuỗi đắt đỏ (`REPLACE`, `LOWER`) và thay bằng cấu trúc `LIKE` tối ưu. Tốc độ tìm kiếm giảm từ ~40s xuống chỉ còn ~0.05s.
+- **Sửa lỗi API & Frontend:** Khắc phục lỗi nghiêm trọng ở giao diện tìm kiếm (truyền object thay vì ID khi nhấn từ gợi ý) gây ra lỗi `MethodArgumentTypeMismatchException` (500) ở Spring Boot.
+- **Tinh chỉnh UI/UX:** Cập nhật CSS để dời Toast Notification (bảng thông báo) sang góc trái màn hình, tránh việc bị che khuất bởi nút floating Gia Sư AI.
+- **Tích hợp "Phân tích ngữ pháp AI":** Xây dựng tính năng gọi trực tiếp API Gemini 2.5 để phân tích cấu trúc ngữ pháp và đưa ra ví dụ trực tiếp bên dưới mỗi từ vựng, giải quyết bài toán thiếu hụt dữ liệu ngữ pháp offline.
+
+**Những kiến thức học được trong tuần này:**
+- Hiểu được tác động nghiêm trọng của việc chạy các tác vụ nặng trên quy mô data lớn (hundreds of thousands of records) trong quá trình khởi động ứng dụng (Application Startup).
+- Nắm được sự khác biệt về hiệu năng khi sử dụng native SQL queries: việc dùng hàm xử lý chuỗi trên các cột trong mệnh đề WHERE có thể vô hiệu hóa Index và gây sụt giảm tốc độ nghiêm trọng.
+- Nâng cao kỹ năng Debug Full-stack: Học cách trace lỗi từ giao diện React (truyền sai kiểu dữ liệu), theo dõi qua Network tab, và đọc hiểu Stack trace trong log của Spring Boot để tìm đúng nguyên nhân gốc rễ thay vì đoán mò.
+- Học cách tiếp cận sáng tạo bằng AI: Thay vì phải tự cào (crawl) hoặc nhập liệu hàng ngàn cấu trúc ngữ pháp khô khan, việc tích hợp LLM (Gemini) giúp cung cấp giải pháp động, linh hoạt và thông minh cho bài tập lớn.

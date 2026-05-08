@@ -21,4 +21,5 @@ public class SrsReviewCardResponseDTO {
     private int repetition;
     private int intervalDays;
     private LocalDateTime nextReviewAt;
+    private String customExamples;
 }

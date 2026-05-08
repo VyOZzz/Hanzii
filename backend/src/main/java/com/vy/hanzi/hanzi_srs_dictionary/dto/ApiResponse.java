@@ -33,4 +33,11 @@ public class ApiResponse<T> {
                 .meta(meta)
                 .build();
     }
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .data(data)
+                .build();
+    }
 }

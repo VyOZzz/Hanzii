@@ -196,14 +196,20 @@
 /* ── Notice bars ── */
 .notice {
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 16px 24px;
   font-weight: 500;
-  font-size: 13px;
-  margin-bottom: 24px;
+  font-size: 15px;
   display: flex;
   align-items: center;
   gap: 8px;
-  animation: slideDown 0.3s var(--ease) both;
+  animation: slideUp 0.3s var(--ease) both;
+  
+  /* Toast notification positioning */
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .notice.ok {
@@ -216,8 +222,8 @@
   color: var(--error);
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 

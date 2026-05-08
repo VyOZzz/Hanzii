@@ -5,7 +5,8 @@ import WordList from '../components/WordList'
 import { useAppContext } from '../context/useAppContext'
 import { WORD_TYPES } from '../constants/appConstants'
 import { convertPinyin } from '../utils/pinyin'
-import { searchWords } from '../api'
+import { getWordDetail, filterWordsPaged, getRecommendedPaged, suggestWords, searchWords, analyzeWordGrammar } from '../api'
+import { formatMeaning } from '../utils/meaning'
 
 export default function DictionaryPage() {
   const {
@@ -41,10 +42,15 @@ export default function DictionaryPage() {
   const [suggestionLoading, setSuggestionLoading] = useState(false)
   const blurTimeout = useRef(null)
 
+  // AI Grammar Analysis state
+  const [grammarAnalysis, setGrammarAnalysis] = useState(null)
+  const [grammarLoading, setGrammarLoading] = useState(false)
+
   // Auto-scroll to detail section when a word is selected
   useEffect(() => {
     if (wordDetail && wordDetail.id !== prevWordIdRef.current) {
       prevWordIdRef.current = wordDetail.id
+      setGrammarAnalysis(null)
       setTimeout(() => {
         detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 100)
@@ -56,8 +62,9 @@ export default function DictionaryPage() {
       if (searchKeyword.trim().length > 0) {
         setSuggestionLoading(true)
         try {
-          const res = await searchWords({ keyword: searchKeyword.trim(), page: 0, size: 5, token })
-          setSuggestions(res.items || [])
+          const res = await suggestWords({ keyword: searchKeyword.trim(), page: 0, size: 5, token })
+          const validSuggestions = (res.items || []).filter(word => /[\u4E00-\u9FA5\u3007]/.test(word.hanzi))
+          setSuggestions(validSuggestions)
           setShowSuggestions(true)
         } catch (e) {
           console.error('Lỗi lấy gợi ý:', e)
@@ -118,12 +125,12 @@ export default function DictionaryPage() {
                             e.preventDefault() // prevent blur
                             setSearchKeyword(s.hanzi)
                             setShowSuggestions(false)
-                            handleSelectWord(s)
+                            handleSelectWord(s.id)
                           }}
                         >
                           <span className="sg-hanzi">{s.hanzi}</span>
                           <span className="sg-pinyin">{convertPinyin(s.pinyin)}</span>
-                          <span className="sg-meaning">{s.meaning}</span>
+                          <span className="sg-meaning">{formatMeaning(s.meaning)}</span>
                         </li>
                       ))}
                     </ul>
@@ -172,7 +179,7 @@ export default function DictionaryPage() {
                 <div className="detail">
                   <h3>{wordDetail.hanzi}</h3>
                   <p><strong>Pinyin:</strong> {convertPinyin(wordDetail.pinyin)}</p>
-                  <p><strong>Nghĩa:</strong> {wordDetail.meaning}</p>
+                  <p><strong>Nghĩa:</strong> {formatMeaning(wordDetail.meaning, 10)}</p>
                   {wordDetail.sinoVietnamese && <p><strong>Hán Việt:</strong> {wordDetail.sinoVietnamese}</p>}
                   <p><strong>HSK:</strong> Level {wordDetail.hskLevel || '—'}</p>
                   {wordDetail.strokeCount > 0 && <p><strong>Số nét:</strong> {wordDetail.strokeCount}</p>}
@@ -192,11 +199,46 @@ export default function DictionaryPage() {
                           </button>
                         </div>
                       )}
-                      <button type="button" className="btn-primary btn-icon" onClick={addCurrentWordToSrs}>
-                        Thêm vào SRS
-                      </button>
                     </div>
                   )}
+
+                    <div style={{ marginTop: 24, padding: 16, background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <h4 style={{ margin: 0, color: '#334155' }}>Ngữ pháp & Cách dùng</h4>
+                      {grammarAnalysis === null && !grammarLoading && (
+                        <button 
+                          className="btn-primary" 
+                          style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)', padding: '6px 12px', fontSize: 13 }}
+                          onClick={async () => {
+                            setGrammarLoading(true)
+                            try {
+                              console.log("Sending AI request for:", wordDetail.hanzi);
+                              const res = await analyzeWordGrammar({
+                                hanzi: wordDetail.hanzi,
+                                pinyin: wordDetail.pinyin,
+                                meaning: wordDetail.meaning
+                              })
+                              console.log("AI Response received:", res);
+                              setGrammarAnalysis(res || "AI không trả về kết quả nào (Empty string).")
+                            } catch (e) {
+                              console.error("AI Error:", e);
+                              setGrammarAnalysis("Không thể phân tích bằng AI lúc này: " + e.message)
+                            } finally {
+                              setGrammarLoading(false)
+                            }
+                          }}
+                        >
+                          ✨ Phân tích bằng AI
+                        </button>
+                      )}
+                    </div>
+                    {grammarLoading && <SkeletonBlock lines={3} />}
+                    {grammarAnalysis !== null && (
+                      <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.6, color: '#475569' }}>
+                        {grammarAnalysis}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </article>

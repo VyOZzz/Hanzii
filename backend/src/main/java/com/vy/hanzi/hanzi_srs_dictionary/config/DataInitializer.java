@@ -30,7 +30,8 @@ public class DataInitializer {
                 return;
             }
             if(wordRepository.count() > 0) {
-                log.info("Data already exists. Skipping import.");
+                log.info("Data already exists. Skipping dictionary fix.");
+                // wordService.fixDictionaryMeanings();
                 return;
             }
             if(filePath == null || filePath.isBlank()) {
