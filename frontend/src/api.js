@@ -162,7 +162,9 @@ export async function getWordDetail(id, token) {
 
 export async function filterWordsPaged({ hskLevel, types, page, size, token }) {
   const params = new URLSearchParams({ hskLevel: String(hskLevel), page: String(page), size: String(size) })
-  types.forEach((t) => params.append('types', t))
+  if (types && types.length > 0) {
+    types.forEach((t) => params.append('types', t))
+  }
   const payload = await request(`/api/words/filter/paged?${params.toString()}`, { token })
   return mapPageEnvelope(payload)
 }

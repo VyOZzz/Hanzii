@@ -43,7 +43,8 @@ public class SecurityConfig {
                                 "/api/grammar-points",
                                 "/api/grammar-points/**",
                                 "/api/grammar-examples/**",
-                                "/api/ai/chat"
+                                "/api/ai/chat",
+                                "/api/ai/classify-missing-hsk"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

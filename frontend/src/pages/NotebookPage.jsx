@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
-import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord } from '../api'
+import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord, getNotebookDueCards } from '../api'
 import { convertPinyin } from '../utils/pinyin'
 import { formatMeaning } from '../utils/meaning'
 
@@ -28,6 +28,7 @@ export default function NotebookPage() {
     notebooks,
     createNotebookItem,
     loadNotebooks,
+    loadSrsDueCards,
     setNotice,
     setError,
   } = useAppContext()
@@ -38,6 +39,8 @@ export default function NotebookPage() {
   const [activeNotebookId, setActiveNotebookId] = useState(null)
   const [notebookWords, setNotebookWords] = useState([])
   const [wordsLoading, setWordsLoading] = useState(false)
+  const [reviewQueueStats, setReviewQueueStats] = useState({ newCount: 0, reviewCount: 0, totalDue: 0 })
+  const [reviewQueueLoading, setReviewQueueLoading] = useState(false)
 
   // Anki review mode
   const [reviewMode, setReviewMode] = useState(false)
@@ -83,17 +86,26 @@ export default function NotebookPage() {
     if (activeNotebookId === nbId) {
       setActiveNotebookId(null)
       setNotebookWords([])
+      setReviewQueueStats({ newCount: 0, reviewCount: 0, totalDue: 0 })
       return
     }
     setActiveNotebookId(nbId)
     setWordsLoading(true)
+    setReviewQueueLoading(true)
     try {
-      const words = await getNotebookWords({ notebookId: nbId, token })
+      const [words, dueCards] = await Promise.all([
+        getNotebookWords({ notebookId: nbId, token }),
+        getNotebookDueCards({ notebookId: nbId, token }),
+      ])
+      const newCount = dueCards.filter((card) => Number(card.repetition) === 0).length
+      const reviewCount = dueCards.length - newCount
       setNotebookWords(words)
+      setReviewQueueStats({ newCount, reviewCount, totalDue: dueCards.length })
     } catch (e) {
       setError(e.message)
     } finally {
       setWordsLoading(false)
+      setReviewQueueLoading(false)
     }
   }, [activeNotebookId, token, setError])
 
@@ -136,6 +148,15 @@ export default function NotebookPage() {
       } else {
         // Review complete
         setReviewMode(false)
+        if (activeNotebookId) {
+          try {
+            const dueCards = await getNotebookDueCards({ notebookId: activeNotebookId, token })
+            const newCount = dueCards.filter((item) => Number(item.repetition) === 0).length
+            const reviewCount = dueCards.length - newCount
+            setReviewQueueStats({ newCount, reviewCount, totalDue: dueCards.length })
+          } catch {}
+        }
+        await loadSrsDueCards()
         setNotice(
           `Ôn tập hoàn thành! Nhớ: ${reviewStats.remembered + (rating >= 3 ? 1 : 0)}, Quên: ${reviewStats.forgot + (rating < 3 ? 1 : 0)}`,
         )
@@ -159,6 +180,14 @@ export default function NotebookPage() {
     try {
       await removeNotebookWord({ notebookId: activeNotebookId, wordId, token })
       setNotebookWords((prev) => prev.filter((w) => w.id !== wordId))
+      if (activeNotebookId) {
+        try {
+          const dueCards = await getNotebookDueCards({ notebookId: activeNotebookId, token })
+          const newCount = dueCards.filter((item) => Number(item.repetition) === 0).length
+          const reviewCount = dueCards.length - newCount
+          setReviewQueueStats({ newCount, reviewCount, totalDue: dueCards.length })
+        } catch {}
+      }
       setNotice(`Đã xoá "${wordHanzi}"`)
     } catch (e) {
       setError(e.message)
@@ -230,9 +259,9 @@ export default function NotebookPage() {
                 )}
                 
                 {currentCard.customExamples && (
-                  <div className="flashcard-examples" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border)', textAlign: 'left' }}>
-                    <div className="section-eyebrow" style={{ color: 'var(--primary)', marginBottom: '8px' }}>✨ Câu ví dụ cá nhân hóa (AI)</div>
-                    <div style={{ fontSize: '1rem', whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-light)' }}>
+                  <div className="flashcard-examples" style={{ marginTop: '16px', padding: '12px', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.04)', textAlign: 'left' }}>
+                    <div className="section-eyebrow" style={{ color: '#7dd3fc', marginBottom: '8px' }}>✨ Câu ví dụ cá nhân hóa (AI)</div>
+                    <div style={{ fontSize: '1rem', whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'rgba(241, 245, 249, 0.96)' }}>
                       {currentCard.customExamples}
                     </div>
                   </div>
@@ -416,6 +445,21 @@ export default function NotebookPage() {
                     {/* Expanded content */}
                     {activeNotebookId === nb.id && (
                       <div className="notebook-detail fade-in">
+                        <div className="review-queue-row" aria-live="polite">
+                          <div className="review-queue-item new">
+                            <span className="label">Mới cần học</span>
+                            <strong className="value">{reviewQueueLoading ? '…' : reviewQueueStats.newCount}</strong>
+                          </div>
+                          <div className="review-queue-item review">
+                            <span className="label">Cần ôn lại</span>
+                            <strong className="value">{reviewQueueLoading ? '…' : reviewQueueStats.reviewCount}</strong>
+                          </div>
+                          <div className="review-queue-item due">
+                            <span className="label">Tổng đến hạn</span>
+                            <strong className="value">{reviewQueueLoading ? '…' : reviewQueueStats.totalDue}</strong>
+                          </div>
+                        </div>
+
                         {/* Review button */}
                         {(nb.wordIds || []).length > 0 && (
                           <div className="row" style={{ gap: 8 }}>

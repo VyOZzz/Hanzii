@@ -121,3 +121,17 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
 - Hiểu rõ hơn cách thiết kế một batch job chạy an toàn: chia nhỏ theo `batchSize`, giới hạn số lượng xử lý mỗi lần (`limit`), và trả về báo cáo tổng kết để dễ theo dõi.
 - Rút kinh nghiệm về chất lượng gợi ý tìm kiếm: thứ tự ưu tiên (exact/prefix/contains) giúp kết quả "đúng ý" hơn nhiều so với chỉ `LIKE '%...%'`.
 - Nâng cao kỹ năng quản lý state React: tránh reset lựa chọn của người dùng khi reload dữ liệu, và dùng `useMemo` để tối ưu các danh sách hiển thị phụ (ví dụ: lịch sử tra gần đây).
+
+---
+
+### Tuần 10 — 13/5/2026 đến 19/5/2026
+- **Refactor kiến trúc AI theo Strategy Pattern:** Tách interface `AIAssistantService` dùng chung cho các luồng AI, giữ nguyên `GeminiService` và bổ sung `OpenAIService` để hỗ trợ chuyển đổi nhà cung cấp mà không phá vỡ code cũ.
+- **Bổ sung cơ chế bật/tắt provider qua cấu hình:** Thêm `ai.provider` trong `application.properties` và dùng `@ConditionalOnProperty` để nạp đúng bean AI theo giá trị `gemini` hoặc `openai`.
+- **Chuẩn hoá điểm gọi AI trong hệ thống:** Cập nhật các thành phần gọi AI (`AIController`, `NotebookService`, `HskClassificationService`) sang inject interface thay vì phụ thuộc cứng vào một implementation.
+- **Tự động hoá gán HSK bằng script độc lập:** Tạo script trong thư mục `scratch` để đọc cấu hình DB, truy vấn các từ chưa có `hsk_level`, gọi API AI để phân loại và cập nhật ngược vào MySQL.
+- **Kiểm chứng thực thi batch trên dữ liệu thật:** Chạy thử quy trình 100 bản ghi; hệ thống cập nhật thành công một phần và ghi nhận rõ nguyên nhân còn lại do giới hạn quota/rate-limit của API, giúp xác định bước tối ưu tiếp theo (retry/backoff hoặc chuyển provider).
+
+**Những kiến thức học được trong tuần này:**
+- Hiểu rõ lợi ích của Strategy Pattern trong bối cảnh tích hợp dịch vụ AI: giảm coupling, tăng khả năng thay thế provider nhanh khi có rủi ro chi phí hoặc quota.
+- Nắm chắc cách dùng `@ConditionalOnProperty` để điều khiển vòng đời bean theo cấu hình runtime thay vì hard-code trong business logic.
+- Củng cố kinh nghiệm vận hành batch job thực tế: luôn cần logging tiến độ, thống kê kết quả (updated/failed), và cơ chế chịu lỗi tốt khi gặp API rate-limit.

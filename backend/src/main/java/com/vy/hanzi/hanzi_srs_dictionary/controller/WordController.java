@@ -74,7 +74,7 @@ public class WordController {
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<java.util.List<WordResponseDTO>>> filterByHskAndTypes(
             @RequestParam Integer hskLevel,
-            @RequestParam java.util.List<String> types
+            @RequestParam(required = false) java.util.List<String> types
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Filter words successfully",
@@ -85,7 +85,7 @@ public class WordController {
     @GetMapping("/filter/paged")
     public ResponseEntity<ApiResponse<Page<WordResponseDTO>>> filterByHskAndTypesPaged(
             @RequestParam Integer hskLevel,
-            @RequestParam java.util.List<String> types,
+            @RequestParam(required = false) java.util.List<String> types,
             Pageable pageable
     ) {
         Page<WordResponseDTO> result = wordService.getWordsByHskAndTypesPaged(hskLevel, types, pageable);

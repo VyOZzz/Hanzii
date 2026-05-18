@@ -30,7 +30,7 @@ public class NotebookService {
     private final UserRepository userRepository;
     private final WordRepository wordRepository;
     private final SrsReviewCardRepository srsReviewCardRepository;
-    private final GeminiService geminiService;
+    private final AIAssistantService aiAssistantService;
 
     @Transactional
     public NotebookResponseDTO createNotebook(CreateNotebookRequestDTO request) {
@@ -94,7 +94,7 @@ public class NotebookService {
             CompletableFuture.runAsync(() -> {
                 String prompt = String.format("Tạo 3 câu ví dụ tiếng Trung giao tiếp thực tế chứa từ '%s' (pinyin: %s, nghĩa: %s), phù hợp với người học ở cấp độ HSK %s hoặc theo sở thích thông thường (ví dụ: du lịch, công việc). Định dạng: Hán tự - Pinyin - Dịch nghĩa tiếng Việt.", 
                         saved.getHanzi(), saved.getPinyin(), saved.getMeaning(), saved.getHskLevel() > 0 ? String.valueOf(saved.getHskLevel()) : "cơ bản");
-                String aiExamples = geminiService.chatWithTutor(prompt);
+                String aiExamples = aiAssistantService.chatWithTutor(prompt);
                 card.setCustomExamples(aiExamples);
                 srsReviewCardRepository.save(card);
             });

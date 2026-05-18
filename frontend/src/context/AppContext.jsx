@@ -39,7 +39,7 @@ export function AppProvider({ children }) {
   const [detailLoading, setDetailLoading] = useState(false)
   const [wordDetail, setWordDetail] = useState(null)
 
-  const [filterForm, setFilterForm] = useState({ hskLevel: 1, types: [WORD_TYPES[0]] })
+  const [filterForm, setFilterForm] = useState({ hskLevel: 1, types: [] })
   const [filterState, setFilterState] = useState({ items: [], page: 0, totalPages: 1, loading: false })
 
   const [recommendedState, setRecommendedState] = useState({ items: [], page: 0, totalPages: 1, loading: false })
@@ -158,8 +158,10 @@ export function AppProvider({ children }) {
     }
   }
 
-  async function loadSearch(page) {
-    if (!searchKeyword.trim()) {
+  async function loadSearch(page, keywordOverride = searchKeyword) {
+    const keyword = String(keywordOverride || '').trim()
+
+    if (!keyword) {
       setSearchState({ items: [], page: 0, totalPages: 1, loading: false, hasSearched: false })
       return
     }
@@ -167,7 +169,7 @@ export function AppProvider({ children }) {
     setSearchState((prev) => ({ ...prev, loading: true }))
     resetMessages()
     try {
-      const result = await searchWords({ keyword: searchKeyword.trim(), page, size: PAGE_SIZE, token })
+      const result = await searchWords({ keyword, page, size: PAGE_SIZE, token })
       setSearchState({ items: result.items, page: result.page, totalPages: result.totalPages, loading: false, hasSearched: true })
     } catch (e) {
       setSearchState((prev) => ({ ...prev, loading: false, hasSearched: true }))
@@ -231,7 +233,13 @@ export function AppProvider({ children }) {
     try {
       const list = await getMyNotebooks(tokenOverride || token)
       setNotebooks(list)
-      setSelectedNotebookId(list.length > 0 ? String(list[0].id) : '')
+      setSelectedNotebookId((prev) => {
+        if (!list.length) return ''
+        const prevId = String(prev || '')
+        const stillExists = list.some((nb) => String(nb.id) === prevId)
+        if (stillExists) return prevId
+        return String(list[0].id)
+      })
     } catch (e) {
       handleApiError(e)
     } finally {
@@ -256,7 +264,7 @@ export function AppProvider({ children }) {
     resetMessages()
     try {
       // Lưu vào sổ tay
-      const updated = await addWordToNotebook({
+      await addWordToNotebook({
         notebookId: Number(selectedNotebookId),
         wordId: wordDetail.id,
         token,
@@ -264,9 +272,9 @@ export function AppProvider({ children }) {
       // ĐỒNG THỜI tự động đưa vào SRS để học ngắt quãng
       await addWordToSrs({ wordId: wordDetail.id, token })
 
-      setNotice(`Đã thêm "${wordDetail.hanzi}" vào sổ và bắt đầu lộ trình học (SRS)!`)
       await loadNotebooks()
       await loadSrsDueCards()
+      setNotice(`Đã thêm "${wordDetail.hanzi}" vào sổ và bắt đầu lộ trình học (SRS)!`)
     } catch (e) {
       handleApiError(e)
     }

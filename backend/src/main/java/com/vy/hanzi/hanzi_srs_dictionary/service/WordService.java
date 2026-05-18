@@ -72,18 +72,21 @@ public class WordService {
     }
 
     public List<WordResponseDTO> getWordsByHskAndTypes(Integer hskLevel, List<String> types) {
-        if (hskLevel == null || types == null || types.isEmpty()) {
-            throw new BadRequestException("hskLevel and types are required");
+        if (hskLevel == null) {
+            throw new BadRequestException("hskLevel is required");
         }
 
-        List<String> normalizedTypes = types.stream()
+        List<String> normalizedTypes = types == null ? List.of() : types.stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(type -> !type.isEmpty())
                 .toList();
 
         if (normalizedTypes.isEmpty()) {
-            throw new BadRequestException("types must contain at least one non-empty value");
+            return wordRepository.findByHskLevel(hskLevel)
+                    .stream()
+                    .map(this::convertToDTO)
+                    .toList();
         }
 
         return wordRepository.findByHskLevelAndTypes_NameIn(hskLevel, normalizedTypes)
@@ -93,18 +96,19 @@ public class WordService {
     }
 
     public Page<WordResponseDTO> getWordsByHskAndTypesPaged(Integer hskLevel, List<String> types, Pageable pageable) {
-        if (hskLevel == null || types == null || types.isEmpty()) {
-            throw new BadRequestException("hskLevel and types are required");
+        if (hskLevel == null) {
+            throw new BadRequestException("hskLevel is required");
         }
 
-        List<String> normalizedTypes = types.stream()
+        List<String> normalizedTypes = types == null ? List.of() : types.stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(type -> !type.isEmpty())
                 .toList();
 
         if (normalizedTypes.isEmpty()) {
-            throw new BadRequestException("types must contain at least one non-empty value");
+            return wordRepository.findByHskLevel(hskLevel, pageable)
+                    .map(this::convertToDTO);
         }
 
         return wordRepository.findByHskLevelAndTypes_NameIn(hskLevel, normalizedTypes, pageable)
