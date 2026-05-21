@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
+import { useNavigate } from 'react-router-dom'
+import { getStoredUser } from '../api'
 
 export default function AccountPage() {
   const { loggedIn, user, authenticate, logout, changePassword, setError, notebooks } = useAppContext()
+  const navigate = useNavigate()
 
   const [authMode, setAuthMode] = useState('login')
   const [authForm, setAuthForm] = useState({ username: '', email: '', password: '' })
@@ -47,6 +50,10 @@ export default function AccountPage() {
       setAuthForm({ username: '', email: '', password: '' })
       setConfirmPassword('')
       setShowPassword(false)
+      const currentUser = getStoredUser()
+      if (currentUser?.role === 'ADMIN') {
+        navigate('/admin')
+      }
     }
     setAuthLoading(false)
   }

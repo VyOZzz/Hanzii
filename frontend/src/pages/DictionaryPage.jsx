@@ -7,6 +7,9 @@ import { WORD_TYPES } from '../constants/appConstants'
 import { convertPinyin } from '../utils/pinyin'
 import { suggestWords, analyzeWordGrammar } from '../api'
 import { formatMeaning } from '../utils/meaning'
+import useVoiceInput from '../hooks/useVoiceInput'
+import HandwritingCanvas from '../components/HandwritingCanvas'
+import StrokeAnimation from '../components/StrokeAnimation'
 
 export default function DictionaryPage() {
   const {
@@ -51,6 +54,9 @@ export default function DictionaryPage() {
   // AI Grammar Analysis state
   const [grammarAnalysis, setGrammarAnalysis] = useState(null)
   const [grammarLoading, setGrammarLoading] = useState(false)
+  const [showHandwriting, setShowHandwriting] = useState(false)
+  const [showStroke, setShowStroke] = useState(false)
+  const { listening, supported, startListening } = useVoiceInput('zh-CN')
 
   function runRecentSearch(query) {
     setSearchKeyword(query)
@@ -62,6 +68,7 @@ export default function DictionaryPage() {
   useEffect(() => {
     if (wordDetail && wordDetail.id !== prevWordIdRef.current) {
       prevWordIdRef.current = wordDetail.id
+      setShowStroke(false)
       setGrammarAnalysis(null)
       setTimeout(() => {
         detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -120,6 +127,13 @@ export default function DictionaryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loggedIn])
 
+  const handleSpeak = (text) => {
+    if (!text) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    window.speechSynthesis.speak(utterance);
+  }
+
   return (
     <div className="dictionary-layout">
       {/* Hero Search Section */}
@@ -151,6 +165,20 @@ export default function DictionaryPage() {
                 placeholder="Nhập tiếng Việt, pinyin hoặc chữ Hán..."
               />
               <button type="submit" className="btn-primary hero-search-btn">Tìm kiếm</button>
+              <button
+                type="button"
+                className="btn-ghost hero-search-btn"
+                disabled={!supported || listening}
+                onClick={() => startListening({ onResult: (text) => {
+                  setSearchKeyword(text)
+                  loadSearch(0, text)
+                } })}
+              >
+                {listening ? 'Đang nghe...' : 'Giọng nói'}
+              </button>
+              <button type="button" className="btn-ghost hero-search-btn" onClick={() => setShowHandwriting((v) => !v)}>
+                Nét vẽ
+              </button>
               
               {showSuggestions && (
                 <div className="search-suggestions fade-in">
@@ -179,6 +207,15 @@ export default function DictionaryPage() {
                 </div>
               )}
             </div>
+            {showHandwriting && (
+              <HandwritingCanvas
+                onRecognize={(text) => {
+                  setSearchKeyword(text)
+                  loadSearch(0, text)
+                  setShowHandwriting(false)
+                }}
+              />
+            )}
           </form>
 
           {/* Type filters underneath the search */}
@@ -238,7 +275,17 @@ export default function DictionaryPage() {
               ) : (
                 <div className="detail">
                   <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ margin: 0 }}>{wordDetail.hanzi}</h3>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {wordDetail.hanzi}
+                      <button 
+                        onClick={() => handleSpeak(wordDetail.hanzi)}
+                        className="btn secondary"
+                        style={{ padding: '4px', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Nghe phát âm"
+                      >
+                        🔊
+                      </button>
+                    </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <span style={{ fontSize: '18px', color: 'var(--accent)', fontWeight: 500 }}>{convertPinyin(wordDetail.pinyin)}</span>
                       <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{wordDetail.sinoVietnamese ? `Hán Việt: ${wordDetail.sinoVietnamese}` : ''}</span>
@@ -252,9 +299,25 @@ export default function DictionaryPage() {
                   </div>
 
                   <div className="row" style={{ gap: '24px', fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                    {wordDetail.strokeCount > 0 && <span><strong>Số nét:</strong> {wordDetail.strokeCount}</span>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {wordDetail.strokeCount > 0 && <span><strong>Số nét:</strong> {wordDetail.strokeCount}</span>}
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        style={{ fontSize: 13, padding: '4px 10px' }}
+                        onClick={() => setShowStroke((v) => !v)}
+                      >
+                        {showStroke ? 'Ẩn nét chữ' : 'Xem animation nét chữ'}
+                      </button>
+                    </div>
                     <span><strong>Loại từ:</strong> {(wordDetail.wordTypes || []).join(', ') || '—'}</span>
                   </div>
+
+                  {showStroke && (
+                    <div className="fade-in" style={{ margin: '16px 0', padding: 16, background: 'var(--bg-glass)', borderRadius: 12 }}>
+                      <StrokeAnimation hanzi={wordDetail.hanzi} />
+                    </div>
+                  )}
 
                   {loggedIn && (
                     <div className="stack word-detail-actions">
@@ -370,45 +433,6 @@ export default function DictionaryPage() {
             )}
           </article>
 
-          {/* Filter section */}
-          <article className="card fade-in fade-in-delay-1">
-            <h2>Lọc từ theo HSK</h2>
-            <form
-              className="stack"
-              onSubmit={(e) => {
-                e.preventDefault()
-                loadFilter(0)
-              }}
-            >
-              <div style={{ marginBottom: '12px' }}>
-                <div className="hsk-chips">
-                  <button type="button" className={`hsk-chip ${filterForm.hskLevel === '' || !filterForm.hskLevel ? 'active' : ''}`} onClick={() => setFilterForm(prev => ({...prev, hskLevel: ''}))}>Tất cả</button>
-                  {[1,2,3,4,5,6].map(lvl => (
-                    <button 
-                      key={lvl} 
-                      type="button" 
-                      className={`hsk-chip ${String(filterForm.hskLevel) === String(lvl) ? 'active' : ''}`}
-                      onClick={() => setFilterForm(prev => ({...prev, hskLevel: String(lvl)}))}
-                    >
-                      HSK {lvl}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <button type="submit" className="btn-primary" style={{width: '100%', padding: '12px'}}>Áp dụng bộ lọc</button>
-            </form>
-
-            {filterState.loading ? (
-              <SkeletonBlock lines={4} />
-            ) : filterState.items.length > 0 ? (
-              <>
-                <div style={{marginTop: 16}}>
-                  <WordList items={filterState.items} onSelectWord={handleSelectWord} />
-                </div>
-                <Pagination page={filterState.page} totalPages={filterState.totalPages} onPageChange={loadFilter} />
-              </>
-            ) : null}
-          </article>
 
           {/* Recommended */}
           <article className="card fade-in fade-in-delay-2">

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
 import { autoTranslate } from '../api'
+import useVoiceInput from '../hooks/useVoiceInput'
 
 export default function TranslationPage() {
   const {
@@ -18,6 +19,13 @@ export default function TranslationPage() {
   const [targetLang, setTargetLang] = useState('Tiếng Việt')
   const [translating, setTranslating] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const langMap = {
+    'Tiếng Trung': 'zh-CN',
+    'Tiếng Việt': 'vi-VN',
+    English: 'en-US',
+  }
+  const { listening, supported, startListening } = useVoiceInput(langMap[sourceLang] || 'zh-CN')
 
   function handleSwapLanguages() {
     setSourceLang(targetLang)
@@ -86,6 +94,16 @@ export default function TranslationPage() {
           <div className="translate-grid">
             <div className="translate-box">
               <label>Văn bản gốc ({sourceLang})</label>
+              <div className="row" style={{ justifyContent: 'flex-end', marginBottom: 8 }}>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  disabled={!supported || listening}
+                  onClick={() => startListening({ onResult: setSourceText })}
+                >
+                  {listening ? 'Đang nghe...' : 'Giọng nói'}
+                </button>
+              </div>
               <textarea
                 value={sourceText}
                 onChange={(e) => setSourceText(e.target.value)}

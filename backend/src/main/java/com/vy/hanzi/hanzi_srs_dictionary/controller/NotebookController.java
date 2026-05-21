@@ -3,6 +3,7 @@ package com.vy.hanzi.hanzi_srs_dictionary.controller;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.ApiResponse;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.CreateNotebookRequestDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.NotebookResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.dto.QuizQuestionDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.WordResponseDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.security.CurrentUserService;
 import com.vy.hanzi.hanzi_srs_dictionary.service.NotebookService;
@@ -62,6 +63,18 @@ public class NotebookController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Get notebook words successfully",
                 notebookService.getNotebookWords(userId, notebookId)
+        ));
+    }
+
+    @GetMapping("/{notebookId}/quiz")
+    public ResponseEntity<ApiResponse<List<QuizQuestionDTO>>> getNotebookQuiz(
+            @PathVariable Long notebookId,
+            @RequestParam(defaultValue = "10") int count
+    ) {
+        Long userId = currentUserService.requireUserId();
+        return ResponseEntity.ok(ApiResponse.success(
+                "Generate notebook quiz successfully",
+                notebookService.generateQuiz(userId, notebookId, count)
         ));
     }
 }

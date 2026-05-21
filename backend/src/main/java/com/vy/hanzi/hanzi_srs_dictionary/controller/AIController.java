@@ -1,7 +1,9 @@
 package com.vy.hanzi.hanzi_srs_dictionary.controller;
 
 import com.vy.hanzi.hanzi_srs_dictionary.dto.ApiResponse;
+import com.vy.hanzi.hanzi_srs_dictionary.security.CurrentUserService;
 import com.vy.hanzi.hanzi_srs_dictionary.service.AIAssistantService;
+import com.vy.hanzi.hanzi_srs_dictionary.service.AIUsageLogService;
 import com.vy.hanzi.hanzi_srs_dictionary.service.HskClassificationService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,8 @@ public class AIController {
 
     private final AIAssistantService aiAssistantService;
     private final HskClassificationService hskClassificationService;
+    private final CurrentUserService currentUserService;
+    private final AIUsageLogService aiUsageLogService;
 
     @PostMapping("/chat")
     public ResponseEntity<ApiResponse<String>> chat(@RequestBody ChatRequest request) {
@@ -25,6 +29,7 @@ public class AIController {
         }
 
         String aiResponse = aiAssistantService.chatWithTutor(request.getMessage());
+        aiUsageLogService.log(currentUserService.getCurrentUserIdOrNull(), "CHAT", request.getMessage().length());
         return ResponseEntity.ok(ApiResponse.success("AI response received", aiResponse));
     }
 
@@ -34,6 +39,7 @@ public class AIController {
         int batchSize = request != null && request.getBatchSize() != null ? request.getBatchSize() : 20;
 
         Map<String, Object> result = hskClassificationService.classifyMissingHskLevels(limit, batchSize);
+        aiUsageLogService.log(currentUserService.getCurrentUserIdOrNull(), "CLASSIFY", 0);
         return ResponseEntity.ok(ApiResponse.success("HSK classification completed", result));
     }
 

@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/ai-config/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
@@ -44,7 +46,8 @@ public class SecurityConfig {
                                 "/api/grammar-points/**",
                                 "/api/grammar-examples/**",
                                 "/api/ai/chat",
-                                "/api/ai/classify-missing-hsk"
+                                "/api/ai/classify-missing-hsk",
+                                "/api/proxy/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

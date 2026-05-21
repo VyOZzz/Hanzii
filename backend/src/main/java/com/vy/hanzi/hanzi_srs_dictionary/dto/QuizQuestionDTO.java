@@ -1,19 +1,20 @@
 package com.vy.hanzi.hanzi_srs_dictionary.dto;
 
-import com.vy.hanzi.hanzi_srs_dictionary.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDTO {
-    private Long id;
-    private String username;
-    private String email;
-    private Role role;
-    private Boolean blocked;
+public class QuizQuestionDTO {
+    private Long wordId;
+    private String hanzi;
+    private String pinyin;
+    private List<String> choices;
+    private String correctAnswer;
 }

@@ -9,6 +9,7 @@ const navItems = [
   { to: '/grammar', label: 'Ngữ pháp' },
   { to: '/translation', label: 'Dịch thuật' },
   { to: '/history', label: 'Lịch sử' },
+  { to: '/admin', label: 'Admin' },
   { to: '/account', label: 'Tài khoản' },
 ]
 
@@ -27,7 +28,7 @@ export default function AppLayout() {
 
         {/* Desktop Menu */}
         <nav className="topbar-menu">
-          {navItems.map((item) => (
+          {navItems.filter((item) => item.to !== '/admin' || String(user?.role || '') === 'ADMIN').map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

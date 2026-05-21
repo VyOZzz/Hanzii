@@ -33,6 +33,10 @@ public class User {
     @Column(name = "role", nullable = false)
     private Role role;
 
+    @Column(name = "is_blocked", nullable = false)
+    @Builder.Default
+    private Boolean blocked = false;
+
     @OneToMany(mappedBy = "user")
     private List<Notebook> notebooks;
 

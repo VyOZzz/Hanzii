@@ -2,6 +2,7 @@ package com.vy.hanzi.hanzi_srs_dictionary.service;
 
 import com.vy.hanzi.hanzi_srs_dictionary.dto.CreateNotebookRequestDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.NotebookResponseDTO;
+import com.vy.hanzi.hanzi_srs_dictionary.dto.QuizQuestionDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.dto.WordResponseDTO;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.Notebook;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.User;
@@ -22,6 +23,7 @@ import java.util.List;
 import com.vy.hanzi.hanzi_srs_dictionary.entity.SrsReviewCard;
 import com.vy.hanzi.hanzi_srs_dictionary.repository.SrsReviewCardRepository;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -160,5 +162,60 @@ public class NotebookService {
                 .audioUrl(word.getAudioUrl())
                 .wordTypes(word.getTypes() == null ? List.of() : word.getTypes().stream().map(t -> t.getName()).toList())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<QuizQuestionDTO> generateQuiz(Long userId, Long notebookId, int count) {
+        Notebook notebook = notebookRepository.findByIdAndUserId(notebookId, userId)
+                .orElseThrow(() -> new NotFoundException("Notebook not found with id: " + notebookId));
+
+        List<Word> words = notebook.getWords() == null ? List.of() : notebook.getWords();
+        if (words.size() < 4) {
+            return List.of();
+        }
+
+        int limit = Math.max(1, Math.min(count, words.size()));
+        List<Word> shuffled = new ArrayList<>(words);
+        java.util.Collections.shuffle(shuffled);
+        List<Word> selected = shuffled.subList(0, limit);
+
+        List<String> allMeanings = words.stream()
+                .map(Word::getMeaning)
+                .filter(m -> m != null && !m.isBlank())
+                .distinct()
+                .toList();
+
+        List<QuizQuestionDTO> out = new ArrayList<>();
+        for (Word word : selected) {
+            String correct = word.getMeaning();
+            if (correct == null || correct.isBlank()) {
+                continue;
+            }
+
+            List<String> wrong = allMeanings.stream()
+                    .filter(m -> !m.equals(correct))
+                    .toList();
+            if (wrong.size() < 3) {
+                continue;
+            }
+
+            java.util.Set<String> picks = new java.util.LinkedHashSet<>();
+            while (picks.size() < 3) {
+                picks.add(wrong.get(ThreadLocalRandom.current().nextInt(wrong.size())));
+            }
+
+            List<String> choices = new ArrayList<>(picks);
+            choices.add(correct);
+            java.util.Collections.shuffle(choices);
+
+            out.add(QuizQuestionDTO.builder()
+                    .wordId(word.getId())
+                    .hanzi(word.getHanzi())
+                    .pinyin(word.getPinyin())
+                    .choices(choices)
+                    .correctAnswer(correct)
+                    .build());
+        }
+        return out;
     }
 }

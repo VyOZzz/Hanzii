@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AIConfigResponseDTO {
     private Long id;
+    private String apiKeyMasked;
     private String model;
     private String systemPrompt;
     private Boolean isActive;

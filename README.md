@@ -107,3 +107,23 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
 - Nắm được sự khác biệt về hiệu năng khi sử dụng native SQL queries: việc dùng hàm xử lý chuỗi trên các cột trong mệnh đề WHERE có thể vô hiệu hóa Index và gây sụt giảm tốc độ nghiêm trọng.
 - Nâng cao kỹ năng Debug Full-stack: Học cách trace lỗi từ giao diện React (truyền sai kiểu dữ liệu), theo dõi qua Network tab, và đọc hiểu Stack trace trong log của Spring Boot để tìm đúng nguyên nhân gốc rễ thay vì đoán mò.
 - Học cách tiếp cận sáng tạo bằng AI: Thay vì phải tự cào (crawl) hoặc nhập liệu hàng ngàn cấu trúc ngữ pháp khô khan, việc tích hợp LLM (Gemini) giúp cung cấp giải pháp động, linh hoạt và thông minh cho bài tập lớn.
+
+---
+
+### Tuần 9 — 9/5/2026 đến 15/5/2026
+- **Sửa lỗi Nhận diện chữ viết tay (HandwritingCanvas)**:
+  - Khắc phục lỗi lệch tọa độ nét vẽ khi canvas hiển thị theo CSS `width: 100%` bằng cách scale chính xác.
+  - Chuẩn hóa khung vẽ về dạng hình vuông và thêm `aspectRatio: '1 / 1'` để tránh méo nét.
+  - Tăng độ dày nét vẽ (`lineWidth = 15`) để người dùng viết chữ đơn giản rõ ràng hơn.
+  - Viết lại hàm `getPos(event)` hỗ trợ đầy đủ chuột/cảm ứng và chặn triệt để dữ liệu lỗi.
+  - Bổ sung cơ chế làm sạch dữ liệu nét vẽ trước khi gửi API.
+  - Sửa lỗi race condition khiến hệ thống báo sai "Vui lòng vẽ ít nhất một nét".
+
+---
+
+### Tuần 10 — 16/5/2026 đến 22/5/2026
+- **Hoàn thiện tính năng nâng cao & Trang quản trị (Admin)**:
+  - Xây dựng **Trang Quản trị (Admin Dashboard)**: Thêm chức năng Quản lý người dùng, Quản lý cấu hình AI, Thống kê hệ thống.
+  - Nâng cấp **Hệ thống AI & Dịch thuật**: Tích hợp Dịch thuật AI nâng cao (Gemini) hỗ trợ OCR, phân tích ngữ pháp. Xây dựng hệ thống lưu vết (`AIUsageLog`).
+  - Nâng cấp **Học tập & Ôn luyện (Flashcard/SRS)**: Bổ sung **Quiz Mode** và tích hợp **Animation Hán tự (Stroke Animation)**.
+  - Cải thiện **Hạ tầng & API**: Thêm `ProxyController` hỗ trợ Text-to-Speech (Google TTS) để vượt rào cản CORS. Cập nhật phân quyền bảo mật chặt chẽ cho Admin.

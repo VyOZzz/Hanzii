@@ -6,6 +6,7 @@ import GrammarPage from './pages/GrammarPage'
 import HistoryPage from './pages/HistoryPage'
 import NotebookPage from './pages/NotebookPage'
 import TranslationPage from './pages/TranslationPage'
+import AdminPage from './pages/AdminPage'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/translation" element={<TranslationPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/dictionary" replace />} />
       </Route>
     </Routes>

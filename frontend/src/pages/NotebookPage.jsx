@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
-import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord, getNotebookDueCards } from '../api'
+import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord, getNotebookDueCards, getNotebookQuiz } from '../api'
 import { convertPinyin } from '../utils/pinyin'
 import { formatMeaning } from '../utils/meaning'
+import QuizMode from '../components/QuizMode'
 
 function calcNextInterval(rating, currentInterval, repetition) {
   if (rating === 1) return 1
@@ -50,6 +51,8 @@ export default function NotebookPage() {
   const [reviewLoading, setReviewLoading] = useState(false)
   const [reviewActionLoading, setReviewActionLoading] = useState(false)
   const [reviewStats, setReviewStats] = useState({ remembered: 0, forgot: 0 })
+  const [quizMode, setQuizMode] = useState(false)
+  const [quizQuestions, setQuizQuestions] = useState([])
 
   // Settings
   const [showSettings, setShowSettings] = useState(false)
@@ -197,6 +200,28 @@ export default function NotebookPage() {
   const currentCard = reviewCards[currentIndex]
   const activeNotebook = notebooks.find((nb) => nb.id === activeNotebookId)
 
+  async function startQuiz() {
+    if (!activeNotebookId) return
+    setReviewLoading(true)
+    try {
+      const questions = await getNotebookQuiz({ notebookId: activeNotebookId, count: 10, token })
+      if (!questions.length) {
+        setNotice('Sổ tay chưa đủ dữ liệu để tạo quiz')
+        return
+      }
+      setQuizQuestions(questions)
+      setQuizMode(true)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setReviewLoading(false)
+    }
+  }
+
+  async function submitQuizAnswer(wordId, correct) {
+    await submitSrsReview({ wordId, rating: correct ? 3 : 1, token })
+  }
+
   // ── Anki Review Mode ──
   if (reviewMode && currentCard) {
     return (
@@ -330,6 +355,22 @@ export default function NotebookPage() {
             <span className="stat-forget">✗ Quên: {reviewStats.forgot}</span>
           </div>
         </article>
+      </div>
+    )
+  }
+
+  if (quizMode) {
+    return (
+      <div className="column">
+        <QuizMode
+          questions={quizQuestions}
+          onSubmitAnswer={submitQuizAnswer}
+          onExit={() => {
+            setQuizMode(false)
+            setQuizQuestions([])
+            loadSrsDueCards()
+          }}
+        />
       </div>
     )
   }
@@ -480,6 +521,15 @@ export default function NotebookPage() {
                               disabled={reviewLoading}
                             >
                               {reviewLoading ? 'Đang chuẩn bị...' : 'Học toàn bộ'}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-ghost btn-icon notebook-review-btn"
+                              style={{ flex: 1, background: 'var(--bg-glass)' }}
+                              onClick={startQuiz}
+                              disabled={reviewLoading}
+                            >
+                              {reviewLoading ? 'Đang chuẩn bị...' : 'Quiz 4 đáp án'}
                             </button>
                           </div>
                         )}

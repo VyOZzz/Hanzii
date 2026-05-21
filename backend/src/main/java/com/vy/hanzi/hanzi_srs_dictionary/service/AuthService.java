@@ -63,6 +63,9 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new UnauthorizedException("Invalid username or password");
         }
+        if (Boolean.TRUE.equals(user.getBlocked())) {
+            throw new UnauthorizedException("Your account is blocked");
+        }
 
         return toAuthResponse(user);
     }

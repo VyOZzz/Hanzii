@@ -86,10 +86,13 @@ async function request(path, { method = 'GET', body, token, headers } = {}) {
   const text = await response.text()
   const payload = text ? JSON.parse(text) : null
 
-  // Token hết hạn hoặc không hợp lệ → xóa token cũ để user đăng nhập lại
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     clearAuth()
     throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+  }
+
+  if (response.status === 403) {
+    throw new Error('Bạn không có quyền truy cập chức năng này.')
   }
 
   if (!response.ok) {
@@ -199,6 +202,12 @@ export async function removeNotebookWord({ notebookId, wordId, token }) {
 
 export async function getNotebookWords({ notebookId, token }) {
   const payload = await request(`/api/notebooks/${notebookId}/words`, { token })
+  return Array.isArray(payload.data) ? payload.data : []
+}
+
+export async function getNotebookQuiz({ notebookId, count = 10, token }) {
+  const params = new URLSearchParams({ count: String(count) })
+  const payload = await request(`/api/notebooks/${notebookId}/quiz?${params.toString()}`, { token })
   return Array.isArray(payload.data) ? payload.data : []
 }
 
@@ -313,6 +322,44 @@ export async function translateTextApi({ sourceText, translatedText, sourceLangu
   const payload = await request('/api/translations', {
     method: 'POST',
     body: { sourceText, translatedText, sourceLanguage, targetLanguage },
+    token,
+  })
+  return payload.data
+}
+
+export async function getAllUsers(token) {
+  const payload = await request('/api/users', { token })
+  return Array.isArray(payload.data) ? payload.data : []
+}
+
+export async function blockUser({ userId, blocked, token }) {
+  const payload = await request(`/api/users/${userId}/block`, {
+    method: 'PUT',
+    body: { blocked },
+    token,
+  })
+  return payload.data
+}
+
+export async function deleteUser({ userId, token }) {
+  const payload = await request(`/api/users/${userId}`, { method: 'DELETE', token })
+  return payload.data
+}
+
+export async function getAiStats(token) {
+  const payload = await request('/api/users/ai/stats', { token })
+  return payload.data || {}
+}
+
+export async function getAiConfig(token) {
+  const payload = await request('/api/ai-config/latest', { token })
+  return payload.data || {}
+}
+
+export async function updateAiConfig({ apiKey, model, systemPrompt, isActive, token }) {
+  const payload = await request('/api/ai-config', {
+    method: 'PUT',
+    body: { apiKey, model, systemPrompt, isActive },
     token,
   })
   return payload.data
