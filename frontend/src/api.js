@@ -370,3 +370,8 @@ export async function chatWithAITutor(message) {
   const payload = await request('/api/ai/chat', { method: 'POST', body: { message } })
   return payload.data
 }
+
+export async function classifyMissingHsk(token) {
+  const payload = await request('/api/ai/classify-missing-hsk', { method: 'POST', token })
+  return payload.data
+}

@@ -127,3 +127,6 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
   - Nâng cấp **Hệ thống AI & Dịch thuật**: Tích hợp Dịch thuật AI nâng cao (Gemini) hỗ trợ OCR, phân tích ngữ pháp. Xây dựng hệ thống lưu vết (`AIUsageLog`).
   - Nâng cấp **Học tập & Ôn luyện (Flashcard/SRS)**: Bổ sung **Quiz Mode** và tích hợp **Animation Hán tự (Stroke Animation)**.
   - Cải thiện **Hạ tầng & API**: Thêm `ProxyController` hỗ trợ Text-to-Speech (Google TTS) để vượt rào cản CORS. Cập nhật phân quyền bảo mật chặt chẽ cho Admin.
+  - **Tối ưu kiến trúc Database & Codebase**: Phân tích và gỡ bỏ hoàn toàn các bảng/module thừa (WordGraphic, WordExample) do đã được thay thế bằng công nghệ mới (SVG Rendering & AI Generation), giúp Clean Code và giảm tải Database.
+  - **Công cụ Admin nâng cao**: Bổ sung tính năng "Phân loại HSK bằng AI" (chạy ngầm) trong Admin Dashboard để tự động chuẩn hóa dữ liệu từ vựng.
+  - **Hoàn thiện API Ngữ pháp**: Nâng cấp `GrammarController` và `GrammarPointService` hỗ trợ filter theo cấp độ HSK (`GET /api/grammar-points?hskLevel=X`).

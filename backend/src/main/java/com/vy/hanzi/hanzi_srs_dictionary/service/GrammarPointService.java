@@ -18,6 +18,10 @@ public class GrammarPointService {
         return grammarPointRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    public List<GrammarPointResponseDTO> getByHskLevel(Integer hskLevel) {
+        return grammarPointRepository.findByHskLevel(hskLevel).stream().map(this::toDto).toList();
+    }
+
     public GrammarPointResponseDTO getById(Long id) {
         GrammarPoint grammarPoint = grammarPointRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Grammar point not found with id: " + id));

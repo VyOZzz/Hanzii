@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
-import { blockUser, deleteUser, getAiConfig, getAiStats, getAllUsers, updateAiConfig } from '../api'
+import { blockUser, deleteUser, getAiConfig, getAiStats, getAllUsers, updateAiConfig, classifyMissingHsk } from '../api'
 
 export default function AdminPage() {
   const { token, user, setError, setNotice } = useAppContext()
@@ -8,6 +8,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState([])
   const [stats, setStats] = useState(null)
   const [config, setConfig] = useState({ apiKey: '', apiKeyMasked: '', model: '', systemPrompt: '', isActive: true })
+  const [classifyLoading, setClassifyLoading] = useState(false)
 
   const isAdmin = String(user?.role || '') === 'ADMIN'
 
@@ -130,6 +131,29 @@ export default function AdminPage() {
             <ul>
               {(stats?.topUsers || []).map((i) => <li key={i.username}>{i.username}: {i.calls}</li>)}
             </ul>
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '16px 0' }} />
+            <div>
+              <p style={{ marginBottom: 8, fontWeight: 500 }}>Công cụ Admin</p>
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={classifyLoading}
+                onClick={async () => {
+                  if (!window.confirm('Chạy AI để tự động phân loại HSK cho các từ còn thiếu? Có thể mất vài phút.')) return
+                  setClassifyLoading(true)
+                  try {
+                    await classifyMissingHsk(token)
+                    setNotice('Đã kích hoạt phân loại HSK bằng AI! Hệ thống đang xử lý ngầm.')
+                  } catch (e) {
+                    setError(e.message)
+                  } finally {
+                    setClassifyLoading(false)
+                  }
+                }}
+              >
+                {classifyLoading ? '⏳ Đang xử lý...' : '🤖 Phân loại HSK bằng AI'}
+              </button>
+            </div>
           </div>
         )}
 

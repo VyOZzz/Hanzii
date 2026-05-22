@@ -40,10 +40,6 @@ public class Word {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "word")
-    @OrderBy("gifOrder ASC")
-    private java.util.List<WordGraphic> graphics;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable( name = "word_grammar",
                 joinColumns = @JoinColumn(name = "word_id"),
@@ -64,7 +60,4 @@ public class Word {
             joinColumns = @JoinColumn(name = "word_id"),
             inverseJoinColumns = @JoinColumn(name = "word_type_id"))
     private List<WordType> types;
-
-    @OneToMany(mappedBy = "word")
-    private List<WordExample> examples;
 }
