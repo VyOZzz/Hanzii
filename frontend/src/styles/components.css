@@ -183,6 +183,27 @@
   font-weight: 600;
 }
 
+.speaker-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.speaker-btn:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  color: var(--gold);
+}
+
 /* ── HSK filter ── */
 .label-inline {
   display: inline-flex;

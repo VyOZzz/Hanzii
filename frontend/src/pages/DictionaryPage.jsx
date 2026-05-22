@@ -1,4 +1,5 @@
 import { useRef, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Pagination from '../components/Pagination'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
 import WordList from '../components/WordList'
@@ -57,6 +58,15 @@ export default function DictionaryPage() {
   const [showHandwriting, setShowHandwriting] = useState(false)
   const [showStroke, setShowStroke] = useState(false)
   const { listening, supported, startListening } = useVoiceInput('zh-CN')
+
+  const navigate = useNavigate()
+
+  async function handleStartSrs() {
+    const success = await addCurrentWordToSrs()
+    if (success) {
+      navigate('/notebook')
+    }
+  }
 
   function runRecentSearch(query) {
     setSearchKeyword(query)
@@ -277,10 +287,10 @@ export default function DictionaryPage() {
                   <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {wordDetail.hanzi}
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => handleSpeak(wordDetail.hanzi)}
-                        className="btn secondary"
-                        style={{ padding: '4px', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        className="speaker-btn"
                         title="Nghe phát âm"
                       >
                         🔊
@@ -334,7 +344,7 @@ export default function DictionaryPage() {
                         </div>
                       )}
 
-                      <button type="button" className="btn-gold" onClick={addCurrentWordToSrs} style={{ width: '100%', padding: '10px' }}>
+                      <button type="button" className="btn-gold" onClick={handleStartSrs} style={{ width: '100%', padding: '10px' }}>
                         Bắt đầu học qua thẻ SRS
                       </button>
                     </div>
@@ -358,6 +368,7 @@ export default function DictionaryPage() {
                                 hanzi: wordDetail.hanzi,
                                 pinyin: wordDetail.pinyin,
                                 meaning: wordDetail.meaning,
+                                token
                               })
                               setGrammarAnalysis(res || 'AI không trả về kết quả nào.')
                             } catch (e) {
