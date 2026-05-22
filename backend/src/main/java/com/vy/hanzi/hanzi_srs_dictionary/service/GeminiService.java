@@ -77,9 +77,19 @@ public class GeminiService implements AIAssistantService {
             }
 
             return "Xin lỗi, gia sư AI đang gặp sự cố kết nối. Vui lòng thử lại sau.";
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            log.error("HTTP error communicating with Gemini API. Status: {}, Body: {}",
+                    e.getStatusCode(), e.getResponseBodyAsString(), e);
+            if (e.getStatusCode().is5xxServerError()) {
+                return "Hệ thống AI hiện đang quá tải hoặc bảo trì. Vui lòng thử lại sau vài phút nhé!";
+            }
+            if (e.getStatusCode().is4xxClientError()) {
+                return "Lỗi xác thực hoặc cấu hình với hệ thống AI. Vui lòng báo cáo với quản trị viên.";
+            }
+            return "Đã xảy ra lỗi kết nối với AI. Vui lòng thử lại sau.";
         } catch (Exception e) {
             log.error("Error communicating with Gemini API", e);
-            return "Đã xảy ra lỗi khi kết nối với AI: " + e.getMessage();
+            return "Đã xảy ra lỗi không xác định khi kết nối với AI. Vui lòng thử lại sau.";
         }
     }
 

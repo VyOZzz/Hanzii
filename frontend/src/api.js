@@ -257,9 +257,9 @@ export async function getGrammarExamplesByPointId(grammarPointId) {
 
 /* ── AI ── */
 
-export async function analyzeWordGrammar({ hanzi, pinyin, meaning }) {
+export async function analyzeWordGrammar({ hanzi, pinyin, meaning, token }) {
   const message = `Hãy phân tích cấu trúc ngữ pháp, cách dùng của từ tiếng Trung sau đây (giải thích ngắn gọn, dễ hiểu), đồng thời đưa ra 2 câu ví dụ có phiên âm và dịch nghĩa.\nTừ: ${hanzi}\nPinyin: ${pinyin}\nNghĩa: ${meaning}`
-  const payload = await request('/api/ai/chat', { method: 'POST', body: { message } })
+  const payload = await request('/api/ai/chat', { method: 'POST', body: { message }, token })
   return payload.data
 }
 
@@ -291,9 +291,7 @@ export async function autoTranslate({ text, sourceLang, targetLang }) {
 
   let response
   try {
-    response = await fetch(
-      `https://translate.googleapis.com/translate_a/single?${params.toString()}`,
-    )
+    response = await fetch(`https://translate.googleapis.com/translate_a/single?${params.toString()}`)
   } catch {
     throw new Error('Khong the ket noi den dich vu dich. Kiem tra ket noi mang.')
   }

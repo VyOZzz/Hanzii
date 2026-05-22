@@ -25,6 +25,7 @@ public class SrsReviewCard {
 
     @ManyToOne
     @JoinColumn(name = "word_id", nullable = false)
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private Word word;
 
     @Column(name = "repetition", nullable = false)

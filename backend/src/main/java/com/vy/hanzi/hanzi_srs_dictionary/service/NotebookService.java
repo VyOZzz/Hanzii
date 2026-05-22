@@ -33,6 +33,7 @@ public class NotebookService {
     private final WordRepository wordRepository;
     private final SrsReviewCardRepository srsReviewCardRepository;
     private final AIAssistantService aiAssistantService;
+    private final AIUsageLogService aiUsageLogService;
 
     @Transactional
     public NotebookResponseDTO createNotebook(CreateNotebookRequestDTO request) {
@@ -99,6 +100,7 @@ public class NotebookService {
                 String aiExamples = aiAssistantService.chatWithTutor(prompt);
                 card.setCustomExamples(aiExamples);
                 srsReviewCardRepository.save(card);
+                aiUsageLogService.log(userId, "CHAT", prompt.length());
             });
         }
 
@@ -137,7 +139,10 @@ public class NotebookService {
             return List.of();
         }
 
-        return words.stream().map(this::toWordDto).toList();
+        return words.stream()
+                .filter(w -> w != null)
+                .map(this::toWordDto)
+                .toList();
     }
 
     private NotebookResponseDTO toDto(Notebook notebook) {
@@ -146,7 +151,7 @@ public class NotebookService {
                 .title(notebook.getTitle())
                 .createdAt(notebook.getCreatedAt())
                 .userId(notebook.getUser() == null ? null : notebook.getUser().getId())
-                .wordIds(notebook.getWords() == null ? List.of() : notebook.getWords().stream().map(Word::getId).toList())
+                .wordIds(notebook.getWords() == null ? List.of() : notebook.getWords().stream().filter(w -> w != null).map(Word::getId).toList())
                 .build();
     }
 
@@ -170,6 +175,8 @@ public class NotebookService {
                 .orElseThrow(() -> new NotFoundException("Notebook not found with id: " + notebookId));
 
         List<Word> words = notebook.getWords() == null ? List.of() : notebook.getWords();
+        words = words.stream().filter(w -> w != null).toList();
+        
         if (words.size() < 4) {
             return List.of();
         }

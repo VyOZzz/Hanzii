@@ -281,14 +281,16 @@ export function AppProvider({ children }) {
   }
 
   async function addCurrentWordToSrs() {
-    if (!loggedIn || !wordDetail) return
+    if (!loggedIn || !wordDetail) return false
     resetMessages()
     try {
       await addWordToSrs({ wordId: wordDetail.id, token })
       setNotice(`Đã thêm ${wordDetail.hanzi} vào SRS`)
       await loadSrsDueCards()
+      return true
     } catch (e) {
       handleApiError(e)
+      return false
     }
   }
 

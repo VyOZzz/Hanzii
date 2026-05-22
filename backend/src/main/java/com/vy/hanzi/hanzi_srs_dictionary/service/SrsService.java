@@ -61,6 +61,7 @@ public class SrsService {
         return srsReviewCardRepository
                 .findByUserIdAndNextReviewAtLessThanEqualOrderByNextReviewAtAsc(userId, now)
                 .stream()
+                .filter(card -> card.getWord() != null)
                 .map(this::toDto)
                 .toList();
     }
@@ -68,6 +69,7 @@ public class SrsService {
     public List<SrsReviewCardResponseDTO> getAllCards(Long userId) {
         ensureUserExists(userId);
         return srsReviewCardRepository.findByUserIdOrderByNextReviewAtAsc(userId).stream()
+                .filter(card -> card.getWord() != null)
                 .map(this::toDto)
                 .toList();
     }
@@ -90,6 +92,7 @@ public class SrsService {
         return srsReviewCardRepository
                 .findByUserIdAndWordIdInAndNextReviewAtLessThanEqualOrderByNextReviewAtAsc(userId, wordIds, now)
                 .stream()
+                .filter(card -> card.getWord() != null)
                 .map(this::toDto)
                 .toList();
     }
@@ -111,6 +114,7 @@ public class SrsService {
         return srsReviewCardRepository
                 .findByUserIdAndWordIdIn(userId, wordIds)
                 .stream()
+                .filter(card -> card.getWord() != null)
                 .map(this::toDto)
                 .toList();
     }
