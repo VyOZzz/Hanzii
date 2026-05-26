@@ -1,10 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
-import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord, getNotebookDueCards, getNotebookQuiz } from '../api'
+import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord, getNotebookDueCards } from '../api'
 import { convertPinyin } from '../utils/pinyin'
 import { formatMeaning } from '../utils/meaning'
-import QuizMode from '../components/QuizMode'
 
 function calcNextInterval(rating, currentInterval, repetition) {
   if (rating === 1) return 1
@@ -29,6 +28,7 @@ export default function NotebookPage() {
     notebooks,
     createNotebookItem,
     loadNotebooks,
+    srsDueCards,
     loadSrsDueCards,
     setNotice,
     setError,
@@ -51,8 +51,6 @@ export default function NotebookPage() {
   const [reviewLoading, setReviewLoading] = useState(false)
   const [reviewActionLoading, setReviewActionLoading] = useState(false)
   const [reviewStats, setReviewStats] = useState({ remembered: 0, forgot: 0 })
-  const [quizMode, setQuizMode] = useState(false)
-  const [quizQuestions, setQuizQuestions] = useState([])
 
   // Settings
   const [showSettings, setShowSettings] = useState(false)
@@ -200,28 +198,6 @@ export default function NotebookPage() {
   const currentCard = reviewCards[currentIndex]
   const activeNotebook = notebooks.find((nb) => nb.id === activeNotebookId)
 
-  async function startQuiz() {
-    if (!activeNotebookId) return
-    setReviewLoading(true)
-    try {
-      const questions = await getNotebookQuiz({ notebookId: activeNotebookId, count: 10, token })
-      if (!questions.length) {
-        setNotice('Sổ tay chưa đủ dữ liệu để tạo quiz')
-        return
-      }
-      setQuizQuestions(questions)
-      setQuizMode(true)
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setReviewLoading(false)
-    }
-  }
-
-  async function submitQuizAnswer(wordId, correct) {
-    await submitSrsReview({ wordId, rating: correct ? 3 : 1, token })
-  }
-
   // ── Anki Review Mode ──
   if (reviewMode && currentCard) {
     return (
@@ -230,7 +206,7 @@ export default function NotebookPage() {
           {/* Progress bar */}
           <div className="row between" style={{ marginBottom: 8 }}>
             <div>
-              <p className="section-eyebrow">Đang ôn tập · {activeNotebook?.title}</p>
+              <p className="section-eyebrow">Đang ôn tập · {activeNotebook?.title || 'Tổng hợp'}</p>
               <h2 style={{ margin: 0 }}>
                 Thẻ {currentIndex + 1} / {reviewCards.length}
               </h2>
@@ -359,22 +335,6 @@ export default function NotebookPage() {
     )
   }
 
-  if (quizMode) {
-    return (
-      <div className="column">
-        <QuizMode
-          questions={quizQuestions}
-          onSubmitAnswer={submitQuizAnswer}
-          onExit={() => {
-            setQuizMode(false)
-            setQuizQuestions([])
-            loadSrsDueCards()
-          }}
-        />
-      </div>
-    )
-  }
-
   // ── Normal Notebook View ──
   return (
     <div className="column">
@@ -382,6 +342,25 @@ export default function NotebookPage() {
         <div className="row between">
           <h2>Sổ tay & Ôn tập</h2>
           <div className="row" style={{ gap: 8 }}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                if (!srsDueCards || srsDueCards.length === 0) {
+                  setNotice('Không có thẻ nào cần ôn tập!');
+                  return;
+                }
+                setActiveNotebookId(null);
+                setReviewCards(srsDueCards);
+                setCurrentIndex(0);
+                setCardFlipped(false);
+                setReviewStats({ remembered: 0, forgot: 0 });
+                setReviewMode(true);
+              }}
+              disabled={!loggedIn || !srsDueCards?.length}
+            >
+              Ôn tập tất cả ({srsDueCards?.length || 0})
+            </button>
             <button
               type="button"
               className="btn-ghost btn-icon"
@@ -521,15 +500,6 @@ export default function NotebookPage() {
                               disabled={reviewLoading}
                             >
                               {reviewLoading ? 'Đang chuẩn bị...' : 'Học toàn bộ'}
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-ghost btn-icon notebook-review-btn"
-                              style={{ flex: 1, background: 'var(--bg-glass)' }}
-                              onClick={startQuiz}
-                              disabled={reviewLoading}
-                            >
-                              {reviewLoading ? 'Đang chuẩn bị...' : 'Quiz 4 đáp án'}
                             </button>
                           </div>
                         )}

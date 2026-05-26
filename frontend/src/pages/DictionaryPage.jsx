@@ -61,11 +61,8 @@ export default function DictionaryPage() {
 
   const navigate = useNavigate()
 
-  async function handleStartSrs() {
-    const success = await addCurrentWordToSrs()
-    if (success) {
-      navigate('/notebook')
-    }
+  function handleStartSrs() {
+    navigate('/notebook')
   }
 
   function runRecentSearch(query) {
@@ -331,7 +328,7 @@ export default function DictionaryPage() {
 
                   {loggedIn && (
                     <div className="stack word-detail-actions">
-                      {notebooks.length > 0 && (
+                      {notebooks.length > 0 ? (
                         <div className="row">
                           <select className="hsk-select" value={selectedNotebookId} onChange={(e) => setSelectedNotebookId(e.target.value)} style={{ flex: 1, padding: '10px' }}>
                             {notebooks.map((nb) => (
@@ -342,6 +339,10 @@ export default function DictionaryPage() {
                             Lưu vào sổ
                           </button>
                         </div>
+                      ) : (
+                        <button type="button" className="btn-primary" onClick={() => navigate('/notebook')} style={{ width: '100%', padding: '10px' }}>
+                          Tạo sổ tay mới để lưu từ
+                        </button>
                       )}
 
                       <button type="button" className="btn-gold" onClick={handleStartSrs} style={{ width: '100%', padding: '10px' }}>

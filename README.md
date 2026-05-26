@@ -102,11 +102,6 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
 - **Tinh chỉnh UI/UX:** Cập nhật CSS để dời Toast Notification (bảng thông báo) sang góc trái màn hình, tránh việc bị che khuất bởi nút floating Gia Sư AI.
 - **Tích hợp "Phân tích ngữ pháp AI":** Xây dựng tính năng gọi trực tiếp API Gemini 2.5 để phân tích cấu trúc ngữ pháp và đưa ra ví dụ trực tiếp bên dưới mỗi từ vựng, giải quyết bài toán thiếu hụt dữ liệu ngữ pháp offline.
 
-**Những kiến thức học được trong tuần này:**
-- Hiểu được tác động nghiêm trọng của việc chạy các tác vụ nặng trên quy mô data lớn (hundreds of thousands of records) trong quá trình khởi động ứng dụng (Application Startup).
-- Nắm được sự khác biệt về hiệu năng khi sử dụng native SQL queries: việc dùng hàm xử lý chuỗi trên các cột trong mệnh đề WHERE có thể vô hiệu hóa Index và gây sụt giảm tốc độ nghiêm trọng.
-- Nâng cao kỹ năng Debug Full-stack: Học cách trace lỗi từ giao diện React (truyền sai kiểu dữ liệu), theo dõi qua Network tab, và đọc hiểu Stack trace trong log của Spring Boot để tìm đúng nguyên nhân gốc rễ thay vì đoán mò.
-- Học cách tiếp cận sáng tạo bằng AI: Thay vì phải tự cào (crawl) hoặc nhập liệu hàng ngàn cấu trúc ngữ pháp khô khan, việc tích hợp LLM (Gemini) giúp cung cấp giải pháp động, linh hoạt và thông minh cho bài tập lớn.
 
 ---
 
@@ -130,3 +125,12 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
   - **Tối ưu kiến trúc Database & Codebase**: Phân tích và gỡ bỏ hoàn toàn các bảng/module thừa (WordGraphic, WordExample) do đã được thay thế bằng công nghệ mới (SVG Rendering & AI Generation), giúp Clean Code và giảm tải Database.
   - **Công cụ Admin nâng cao**: Bổ sung tính năng "Phân loại HSK bằng AI" (chạy ngầm) trong Admin Dashboard để tự động chuẩn hóa dữ liệu từ vựng.
   - **Hoàn thiện API Ngữ pháp**: Nâng cấp `GrammarController` và `GrammarPointService` hỗ trợ filter theo cấp độ HSK (`GET /api/grammar-points?hskLevel=X`).
+
+---
+
+### Tuần 11 — 23/5/2026 đến 29/5/2026
+- **Tối ưu hóa UI/UX & Sửa lỗi logic Frontend**:
+  - Sửa lỗi hiển thị nút "Lưu vào sổ tay": Tự động hiển thị nút chuyển hướng "Tạo sổ tay mới" khi người dùng chưa có sổ tay nào, giúp luồng trải nghiệm không bị đứt gãy.
+  - Xử lý triệt để lỗi "Thẻ SRS mồ côi": Thêm nút "Ôn tập tất cả" trong trang Sổ tay để gom nhóm và ôn luyện toàn bộ các thẻ flashcard bị kẹt.
+  - Tinh giản giao diện: Gỡ bỏ các chức năng không còn phù hợp với mục tiêu dự án (nút "Phân loại HSK bằng AI" ở trang Admin và tính năng "Quiz 4 đáp án").
+  - Sửa logic nút "Học qua thẻ SRS" ở trang từ điển: Chỉ điều hướng người dùng sang trang Sổ tay thay vì tự động tạo thẻ rác ẩn dưới nền.
