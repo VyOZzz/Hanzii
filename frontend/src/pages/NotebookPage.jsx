@@ -1,11 +1,26 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useAppContext } from '../context/useAppContext'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
 import { getNotebookWords, prepareNotebookReview, submitSrsReview, removeNotebookWord, getNotebookDueCards } from '../api'
 import { convertPinyin } from '../utils/pinyin'
 import { formatMeaning } from '../utils/meaning'
 
-function calcNextInterval(rating, currentInterval, repetition) {
+const DEFAULT_SETTINGS = {
+  cardMode: 'normal',
+  showPinyin: true,
+  showMeta: true,
+}
+
+function loadSavedSettings() {
+  try {
+    const saved = localStorage.getItem('hanzii_notebook_settings')
+    return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
+function calcNextInterval(rating, currentInterval) {
   if (rating === 1) return 1
   if (rating === 2) return Math.max(1, Math.round(currentInterval * 1.2))
   if (rating === 3) return currentInterval === 0 ? 1 : Math.round(currentInterval * 2.5)
@@ -54,20 +69,7 @@ export default function NotebookPage() {
 
   // Settings
   const [showSettings, setShowSettings] = useState(false)
-  const [settings, setSettings] = useState({
-    cardMode: 'normal',
-    showPinyin: true,
-    showMeta: true,
-  })
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('hanzii_notebook_settings')
-      if (saved) {
-        setSettings(JSON.parse(saved))
-      }
-    } catch {}
-  }, [])
+  const [settings, setSettings] = useState(loadSavedSettings)
 
   function updateSetting(key, val) {
     setSettings((prev) => {
@@ -155,7 +157,9 @@ export default function NotebookPage() {
             const newCount = dueCards.filter((item) => Number(item.repetition) === 0).length
             const reviewCount = dueCards.length - newCount
             setReviewQueueStats({ newCount, reviewCount, totalDue: dueCards.length })
-          } catch {}
+          } catch {
+            // Queue stats refresh is best effort after review completion.
+          }
         }
         await loadSrsDueCards()
         setNotice(
@@ -187,13 +191,18 @@ export default function NotebookPage() {
           const newCount = dueCards.filter((item) => Number(item.repetition) === 0).length
           const reviewCount = dueCards.length - newCount
           setReviewQueueStats({ newCount, reviewCount, totalDue: dueCards.length })
-        } catch {}
+        } catch {
+          // Queue stats refresh is best effort after word removal.
+        }
       }
+      // Refresh global SRS due cards so removed words no longer appear in "Ôn tập tất cả"
+      await loadSrsDueCards()
       setNotice(`Đã xoá "${wordHanzi}"`)
     } catch (e) {
       setError(e.message)
     }
   }
+
 
   const currentCard = reviewCards[currentIndex]
   const activeNotebook = notebooks.find((nb) => nb.id === activeNotebookId)
@@ -291,7 +300,7 @@ export default function NotebookPage() {
                   disabled={reviewActionLoading}
                   onClick={() => handleAnswer(1)}
                 >
-                  <span className="btn-time">{formatInterval(calcNextInterval(1, currentCard.intervalDays, currentCard.repetition))}</span>
+                  <span className="btn-time">{formatInterval(calcNextInterval(1, currentCard.intervalDays))}</span>
                   <span>Lại</span>
                 </button>
                 <button
@@ -300,7 +309,7 @@ export default function NotebookPage() {
                   disabled={reviewActionLoading}
                   onClick={() => handleAnswer(2)}
                 >
-                  <span className="btn-time">{formatInterval(calcNextInterval(2, currentCard.intervalDays, currentCard.repetition))}</span>
+                  <span className="btn-time">{formatInterval(calcNextInterval(2, currentCard.intervalDays))}</span>
                   <span>Khó</span>
                 </button>
                 <button
@@ -309,7 +318,7 @@ export default function NotebookPage() {
                   disabled={reviewActionLoading}
                   onClick={() => handleAnswer(3)}
                 >
-                  <span className="btn-time">{formatInterval(calcNextInterval(3, currentCard.intervalDays, currentCard.repetition))}</span>
+                  <span className="btn-time">{formatInterval(calcNextInterval(3, currentCard.intervalDays))}</span>
                   <span>Tốt</span>
                 </button>
                 <button
@@ -318,7 +327,7 @@ export default function NotebookPage() {
                   disabled={reviewActionLoading}
                   onClick={() => handleAnswer(4)}
                 >
-                  <span className="btn-time">{formatInterval(calcNextInterval(4, currentCard.intervalDays, currentCard.repetition))}</span>
+                  <span className="btn-time">{formatInterval(calcNextInterval(4, currentCard.intervalDays))}</span>
                   <span>Dễ</span>
                 </button>
               </div>

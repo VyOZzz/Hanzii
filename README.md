@@ -4,6 +4,62 @@ Hanzii là nền tảng hỗ trợ học tiếng Trung thông minh, kết hợp 
 
 ---
 
+## Hướng dẫn cài đặt & chạy project
+
+### Yêu cầu
+- Java 17+
+- Maven 3.9+ (hoặc dùng `mvnw` trong thư mục `backend/`)
+- Node.js 18+ và npm
+- MySQL 8+
+
+### 1. Cấu hình Database & Secrets
+```bash
+# Tạo database MySQL
+mysql -u root -p -e "CREATE DATABASE hanzii CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+Mở file `backend/src/main/resources/application.properties` và điền thông tin:
+```properties
+# Thay đổi password nếu cần (mặc định để trống nếu không có password MySQL)
+spring.datasource.password=${DB_PASSWORD:your_mysql_password}
+
+# Thêm Gemini API Key (lấy miễn phí tại https://aistudio.google.com/)
+gemini.api.key=${GEMINI_API_KEY:your_gemini_key}
+
+# JWT Secret (có thể giữ nguyên mặc định hoặc đổi thành chuỗi bất kỳ ≥32 ký tự)
+jwt.secret=${JWT_SECRET:LocalDevOnlyJwtSecretKey_ChangeMe_32CharsMin}
+```
+
+Tham khảo `backend/src/main/resources/application-example.properties` để xem toàn bộ cấu hình.
+
+### 2. Chạy Backend
+```bash
+cd backend
+# Dùng Maven Wrapper (không cần cài Maven)
+./mvnw spring-boot:run
+# Hoặc trên Windows:
+mvnw.cmd spring-boot:run
+```
+Backend khởi động tại `http://localhost:8081`. Swagger UI: `http://localhost:8081/swagger-ui.html`
+
+### 3. Chạy Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Frontend khởi động tại `http://localhost:5173`.
+
+### 4. Tạo tài khoản Admin
+Đăng ký tài khoản bình thường qua UI, sau đó cấp quyền Admin qua MySQL:
+```sql
+UPDATE users SET role = 'ADMIN' WHERE username = 'your_username';
+```
+
+---
+
+
+
 ## Công nghệ sử dụng
 
 | Layer | Công nghệ |

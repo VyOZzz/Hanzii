@@ -166,8 +166,13 @@ buildNumber.properties
 Icon
 
 help.md
-.mvn/
-application.properties
+# application.properties sử dụng ${ENV_VAR:default} nên an toàn để commit
+# application-local.properties chứa key thật - KHÔNG commit
+application-local.properties
+application-local.yml
+# .mvn/wrapper/ cần được commit để mvnw chạy được trên máy mới
+# .mvn/timing.properties là cache - không cần commit
+.mvn/timing.properties
 application.yml
 
 # Frontend (React/Vite)
