@@ -40,7 +40,7 @@ export function AppProvider({ children }) {
   const [wordDetail, setWordDetail] = useState(null)
 
   const [filterForm, setFilterForm] = useState({ hskLevel: 1, types: [] })
-  const [filterState, setFilterState] = useState({ items: [], page: 0, totalPages: 1, loading: false })
+  const [filterState, setFilterState] = useState({ items: [], page: 0, totalPages: 1, loading: false, hasFiltered: false })
 
   const [recommendedState, setRecommendedState] = useState({ items: [], page: 0, totalPages: 1, loading: false })
 
@@ -190,22 +190,31 @@ export function AppProvider({ children }) {
     }
   }
 
-  async function loadFilter(page) {
+  async function loadFilter(page, formOverride = filterForm) {
+    const form = {
+      hskLevel: Number(formOverride.hskLevel),
+      types: formOverride.types || [],
+    }
     setFilterState((prev) => ({ ...prev, loading: true }))
     resetMessages()
     try {
       const result = await filterWordsPaged({
-        hskLevel: Number(filterForm.hskLevel),
-        types: filterForm.types,
+        hskLevel: form.hskLevel,
+        types: form.types,
         page,
         size: PAGE_SIZE,
         token,
       })
-      setFilterState({ items: result.items, page: result.page, totalPages: result.totalPages, loading: false })
+      setFilterState({ items: result.items, page: result.page, totalPages: result.totalPages, loading: false, hasFiltered: true })
     } catch (e) {
-      setFilterState((prev) => ({ ...prev, loading: false }))
+      setFilterState((prev) => ({ ...prev, loading: false, hasFiltered: true }))
       handleApiError(e)
     }
+  }
+
+  function resetFilter() {
+    setFilterForm({ hskLevel: 1, types: [] })
+    setFilterState({ items: [], page: 0, totalPages: 1, loading: false, hasFiltered: false })
   }
 
   async function loadRecommended(page, tokenOverride) {
@@ -392,12 +401,14 @@ export function AppProvider({ children }) {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadGrammarPoints()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (!token) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNotebooks(token)
     loadRecommended(0, token)
     loadSrsDueCards(token)
@@ -429,6 +440,7 @@ export function AppProvider({ children }) {
     selectedWordTypes,
     filterState,
     loadFilter,
+    resetFilter,
     recommendedState,
     loadRecommended,
 

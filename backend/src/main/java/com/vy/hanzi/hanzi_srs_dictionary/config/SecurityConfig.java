@@ -33,6 +33,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/ai-config/**").hasRole("ADMIN")
                         .requestMatchers(
+                                "/api/ai/classify-missing-hsk",
+                                "/api/words/fix-dictionary"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -46,7 +50,6 @@ public class SecurityConfig {
                                 "/api/grammar-points/**",
                                 "/api/grammar-examples/**",
                                 "/api/ai/chat",
-                                "/api/ai/classify-missing-hsk",
                                 "/api/proxy/**"
                         ).permitAll()
                         .anyRequest().authenticated()

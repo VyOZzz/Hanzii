@@ -224,7 +224,7 @@ export default function HandwritingCanvas({ onRecognize }) {
           type="button"
           className="btn-primary"
           onClick={recognize}
-          disabled={loading || (strokes.length === 0 && currentStroke.current.x.length === 0)}
+          disabled={loading || strokes.length === 0}
           style={{ flex: 1 }}
         >
           {loading ? 'Đang nhận diện...' : 'Nhận diện chữ Hán'}

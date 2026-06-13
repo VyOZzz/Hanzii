@@ -121,6 +121,14 @@ public class NotebookService {
                 wordRepository.save(word);
             }
         }
+        if (notebook.getWords() != null) {
+            notebook.getWords().removeIf(existing -> existing.getId().equals(wordId));
+        }
+
+        if (notebookRepository.countByUserIdAndWordId(userId, wordId) == 0) {
+            srsReviewCardRepository.findByUserIdAndWordId(userId, wordId)
+                    .ifPresent(srsReviewCardRepository::delete);
+        }
 
         // Return the updated notebook state
         return toDto(notebook);

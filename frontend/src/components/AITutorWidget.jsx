@@ -32,7 +32,7 @@ export default function AITutorWidget() {
     try {
       const response = await chatWithAITutor(userMessage)
       setMessages((prev) => [...prev, { role: 'ai', text: response }])
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: 'ai', text: 'Xin lỗi, Hanzii đang gặp chút sự cố kết nối. Bạn vui lòng cấu hình API Key hoặc thử lại sau nhé!' }

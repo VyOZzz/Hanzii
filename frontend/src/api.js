@@ -72,7 +72,7 @@ async function request(path, { method = 'GET', body, token, headers } = {}) {
       headers: requestHeaders,
       body: body ? JSON.stringify(body) : undefined,
     })
-  } catch (networkError) {
+  } catch {
     // Fetch itself failed — backend không chạy hoặc mất mạng
     throw new Error('Không thể kết nối đến server. Hãy kiểm tra backend đang chạy tại localhost:8081.')
   }
@@ -277,6 +277,7 @@ const LANG_CODE_MAP = {
   'Tiếng Việt': 'vi',
   'English': 'en',
 }
+const TRANSLATE_TIMEOUT_MS = 10000
 
 export async function autoTranslate({ text, sourceLang, targetLang }) {
   const src = LANG_CODE_MAP[sourceLang] || 'zh-CN'
@@ -290,10 +291,19 @@ export async function autoTranslate({ text, sourceLang, targetLang }) {
   })
 
   let response
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), TRANSLATE_TIMEOUT_MS)
   try {
-    response = await fetch(`https://translate.googleapis.com/translate_a/single?${params.toString()}`)
-  } catch {
+    response = await fetch(`https://translate.googleapis.com/translate_a/single?${params.toString()}`, {
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error('Dich vu dich phan hoi qua cham. Vui long thu lai sau.')
+    }
     throw new Error('Khong the ket noi den dich vu dich. Kiem tra ket noi mang.')
+  } finally {
+    clearTimeout(timeoutId)
   }
 
   if (!response.ok) throw new Error('Dich vu dich khong kha dung (loi ' + response.status + ')')

@@ -8,7 +8,8 @@ export default function StrokeAnimation({ hanzi }) {
   useEffect(() => {
     if (!hanzi || !containerRef.current) return
 
-    containerRef.current.innerHTML = ''
+    const container = containerRef.current
+    container.innerHTML = ''
     writerRefs.current = []
 
     const chars = Array.from(hanzi)
@@ -17,7 +18,7 @@ export default function StrokeAnimation({ hanzi }) {
       const div = document.createElement('div')
       div.style.display = 'inline-block'
       div.style.margin = '0 5px'
-      containerRef.current.appendChild(div)
+      container.appendChild(div)
 
       const writer = HanziWriter.create(div, char, {
         width: 150,
@@ -41,7 +42,7 @@ export default function StrokeAnimation({ hanzi }) {
     animateAll()
 
     return () => {
-      if (containerRef.current) containerRef.current.innerHTML = ''
+      container.innerHTML = ''
     }
   }, [hanzi])
 

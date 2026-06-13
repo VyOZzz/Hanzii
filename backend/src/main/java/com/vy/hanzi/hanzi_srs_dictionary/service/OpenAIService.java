@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.vy.hanzi.hanzi_srs_dictionary.entity.AIConfig;
+import com.vy.hanzi.hanzi_srs_dictionary.repository.AIConfigRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -11,14 +14,17 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 @ConditionalOnProperty(name = "ai.provider", havingValue = "openai")
 public class OpenAIService implements AIAssistantService {
     private static final Pattern HSK_LEVEL_PATTERN = Pattern.compile("\\b([1-9])\\b");
@@ -34,18 +40,21 @@ public class OpenAIService implements AIAssistantService {
     @Value("${openai.model:" + DEFAULT_MODEL + "}")
     private String model;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final AIConfigRepository aiConfigRepository;
+    private final RestTemplate restTemplate = createRestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String chatWithTutor(String userMessage) {
-        if (apiKey == null || apiKey.isBlank() || "YOUR_OPENAI_API_KEY_HERE".equals(apiKey)) {
+        AIConfig activeConfig = getActiveConfig();
+        String configuredApiKey = resolveApiKey(activeConfig);
+        if (configuredApiKey == null || configuredApiKey.isBlank() || "YOUR_OPENAI_API_KEY_HERE".equals(configuredApiKey)) {
             return "Vui lòng cấu hình OPENAI API Key trong file application.properties để sử dụng tính năng Gia Sư AI nhé!";
         }
 
         try {
             ObjectNode payload = objectMapper.createObjectNode();
-            payload.put("model", model);
+            payload.put("model", resolveModel(activeConfig));
 
             ArrayNode messages = payload.putArray("messages");
             messages.addObject()
@@ -57,7 +66,7 @@ public class OpenAIService implements AIAssistantService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(apiKey);
+            headers.setBearerAuth(configuredApiKey);
 
             HttpEntity<String> requestEntity = new HttpEntity<>(objectMapper.writeValueAsString(payload), headers);
             ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, requestEntity, String.class);
@@ -82,13 +91,15 @@ public class OpenAIService implements AIAssistantService {
 
     @Override
     public Integer classifyHskLevel(String hanzi, String pinyin, String meaning) {
-        if (apiKey == null || apiKey.isBlank() || "YOUR_OPENAI_API_KEY_HERE".equals(apiKey)) {
+        AIConfig activeConfig = getActiveConfig();
+        String configuredApiKey = resolveApiKey(activeConfig);
+        if (configuredApiKey == null || configuredApiKey.isBlank() || "YOUR_OPENAI_API_KEY_HERE".equals(configuredApiKey)) {
             return null;
         }
 
         try {
             ObjectNode payload = objectMapper.createObjectNode();
-            payload.put("model", model);
+            payload.put("model", resolveModel(activeConfig));
 
             ArrayNode messages = payload.putArray("messages");
             messages.addObject()
@@ -106,7 +117,7 @@ public class OpenAIService implements AIAssistantService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(apiKey);
+            headers.setBearerAuth(configuredApiKey);
 
             HttpEntity<String> requestEntity = new HttpEntity<>(objectMapper.writeValueAsString(payload), headers);
             ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, requestEntity, String.class);
@@ -126,6 +137,33 @@ public class OpenAIService implements AIAssistantService {
         }
 
         return null;
+    }
+
+    private RestTemplate createRestTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.ofSeconds(10));
+        requestFactory.setReadTimeout(Duration.ofSeconds(30));
+        return new RestTemplate(requestFactory);
+    }
+
+    private AIConfig getActiveConfig() {
+        return aiConfigRepository.findTopByOrderByIdDesc()
+                .filter(config -> !Boolean.FALSE.equals(config.getIs_active()))
+                .orElse(null);
+    }
+
+    private String resolveApiKey(AIConfig activeConfig) {
+        if (activeConfig != null && activeConfig.getApiKey() != null && !activeConfig.getApiKey().isBlank()) {
+            return activeConfig.getApiKey().trim();
+        }
+        return apiKey;
+    }
+
+    private String resolveModel(AIConfig activeConfig) {
+        if (activeConfig != null && activeConfig.getModel() != null && !activeConfig.getModel().isBlank()) {
+            return activeConfig.getModel().trim();
+        }
+        return model;
     }
 
     private String safe(String input) {

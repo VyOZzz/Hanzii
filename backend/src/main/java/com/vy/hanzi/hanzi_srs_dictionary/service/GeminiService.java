@@ -7,20 +7,28 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.vy.hanzi.hanzi_srs_dictionary.entity.AIConfig;
+import com.vy.hanzi.hanzi_srs_dictionary.repository.AIConfigRepository;
+import lombok.RequiredArgsConstructor;
 
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 @ConditionalOnProperty(name = "ai.provider", havingValue = "gemini", matchIfMissing = true)
 public class GeminiService implements AIAssistantService {
     private static final Pattern HSK_LEVEL_PATTERN = Pattern.compile("\\b([1-9])\\b");
+    private static final String GEMINI_MODEL_URL_PREFIX = "https://generativelanguage.googleapis.com/v1beta/models/";
+    private static final String GEMINI_MODEL_URL_SUFFIX = ":generateContent";
 
     @Value("${gemini.api.key}")
     private String apiKey;
@@ -28,12 +36,15 @@ public class GeminiService implements AIAssistantService {
     @Value("${gemini.api.url}")
     private String apiUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final AIConfigRepository aiConfigRepository;
+    private final RestTemplate restTemplate = createRestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String chatWithTutor(String userMessage) {
-        if (apiKey == null || apiKey.equals("YOUR_GEMINI_API_KEY_HERE")) {
+        AIConfig activeConfig = getActiveConfig();
+        String configuredApiKey = resolveApiKey(activeConfig);
+        if (configuredApiKey == null || configuredApiKey.isBlank() || configuredApiKey.equals("YOUR_GEMINI_API_KEY_HERE")) {
             return "Vui lòng cấu hình API Key của Google Gemini trong file application.properties để sử dụng tính năng Gia Sư AI nhé!";
         }
 
@@ -58,7 +69,7 @@ public class GeminiService implements AIAssistantService {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<String> requestEntity = new HttpEntity<>(objectMapper.writeValueAsString(payload), headers);
-            String url = apiUrl + "?key=" + apiKey;
+            String url = resolveApiUrl(activeConfig) + "?key=" + configuredApiKey;
 
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
@@ -95,7 +106,9 @@ public class GeminiService implements AIAssistantService {
 
     @Override
     public Integer classifyHskLevel(String hanzi, String pinyin, String meaning) {
-        if (apiKey == null || apiKey.equals("YOUR_GEMINI_API_KEY_HERE")) {
+        AIConfig activeConfig = getActiveConfig();
+        String configuredApiKey = resolveApiKey(activeConfig);
+        if (configuredApiKey == null || configuredApiKey.isBlank() || configuredApiKey.equals("YOUR_GEMINI_API_KEY_HERE")) {
             return null;
         }
 
@@ -125,7 +138,7 @@ public class GeminiService implements AIAssistantService {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<String> requestEntity = new HttpEntity<>(objectMapper.writeValueAsString(payload), headers);
-            String url = apiUrl + "?key=" + apiKey;
+            String url = resolveApiUrl(activeConfig) + "?key=" + configuredApiKey;
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -149,6 +162,37 @@ public class GeminiService implements AIAssistantService {
         }
 
         return null;
+    }
+
+    private RestTemplate createRestTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.ofSeconds(10));
+        requestFactory.setReadTimeout(Duration.ofSeconds(30));
+        return new RestTemplate(requestFactory);
+    }
+
+    private AIConfig getActiveConfig() {
+        return aiConfigRepository.findTopByOrderByIdDesc()
+                .filter(config -> !Boolean.FALSE.equals(config.getIs_active()))
+                .orElse(null);
+    }
+
+    private String resolveApiKey(AIConfig activeConfig) {
+        if (activeConfig != null && activeConfig.getApiKey() != null && !activeConfig.getApiKey().isBlank()) {
+            return activeConfig.getApiKey().trim();
+        }
+        return apiKey;
+    }
+
+    private String resolveApiUrl(AIConfig activeConfig) {
+        if (activeConfig != null && activeConfig.getModel() != null && !activeConfig.getModel().isBlank()) {
+            String model = activeConfig.getModel().trim();
+            if (model.startsWith("http://") || model.startsWith("https://")) {
+                return model;
+            }
+            return GEMINI_MODEL_URL_PREFIX + model + GEMINI_MODEL_URL_SUFFIX;
+        }
+        return apiUrl;
     }
 
     private String safe(String input) {

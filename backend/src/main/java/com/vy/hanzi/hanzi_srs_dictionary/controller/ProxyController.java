@@ -12,13 +12,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/proxy")
 public class ProxyController {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     @PostMapping(value = "/handwriting", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> handwriting(@RequestBody Map<String, Object> body) {
@@ -28,6 +31,7 @@ public class ProxyController {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(20))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();

@@ -17,6 +17,7 @@ export default function AdminPage() {
     loadUsers()
     loadStats()
     loadConfig()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin])
 
   async function loadUsers() {

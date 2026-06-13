@@ -4,7 +4,7 @@ import Pagination from '../components/Pagination'
 import { SkeletonBlock, StateMessage } from '../components/AsyncState'
 import WordList from '../components/WordList'
 import { useAppContext } from '../context/useAppContext'
-import { WORD_TYPES } from '../constants/appConstants'
+import { HSK_LEVELS, WORD_TYPES } from '../constants/appConstants'
 import { convertPinyin } from '../utils/pinyin'
 import { suggestWords, analyzeWordGrammar } from '../api'
 import { formatMeaning } from '../utils/meaning'
@@ -26,6 +26,7 @@ export default function DictionaryPage() {
     selectedWordTypes,
     filterState,
     loadFilter,
+    resetFilter,
     recommendedState,
     loadRecommended,
     loggedIn,
@@ -33,7 +34,6 @@ export default function DictionaryPage() {
     selectedNotebookId,
     setSelectedNotebookId,
     addCurrentWordToNotebook,
-    addCurrentWordToSrs,
     token,
     historyItems,
     srsDueCards,
@@ -60,6 +60,25 @@ export default function DictionaryPage() {
   const { listening, supported, startListening } = useVoiceInput('zh-CN')
 
   const navigate = useNavigate()
+  const filterActive = filterState.hasFiltered || filterForm.types.length > 0
+  const resultState = filterActive ? filterState : searchState
+  const resultTitle = filterActive ? 'Kết quả lọc' : 'Kết quả tra cứu'
+  const resultHasRequested = filterActive ? filterState.hasFiltered : searchState.hasSearched
+
+  function updateFilter(nextForm) {
+    setFilterForm(nextForm)
+    if (nextForm.types.length === 0 && Number(nextForm.hskLevel) === 1) {
+      resetFilter()
+      return
+    }
+    loadFilter(0, nextForm)
+  }
+
+  function toggleTypeFilter(type) {
+    const exists = filterForm.types.includes(type)
+    const nextTypes = exists ? filterForm.types.filter((t) => t !== type) : [...filterForm.types, type]
+    updateFilter({ ...filterForm, types: nextTypes })
+  }
 
   function handleStartSrs() {
     navigate('/notebook')
@@ -232,13 +251,7 @@ export default function DictionaryPage() {
                 key={type}
                 type="button"
                 className={selectedWordTypes.has(type) ? 'hero-chip active' : 'hero-chip'}
-                onClick={() => {
-                  setFilterForm((prev) => {
-                    const exists = prev.types.includes(type)
-                    const nextTypes = exists ? prev.types.filter((t) => t !== type) : [...prev.types, type]
-                    return { ...prev, types: nextTypes }
-                  })
-                }}
+                onClick={() => toggleTypeFilter(type)}
               >
                 {type}
               </button>
@@ -397,22 +410,26 @@ export default function DictionaryPage() {
 
           {/* Search Results */}
           <article className="card fade-in">
-            <h2>Kết quả tra cứu</h2>
-            {searchState.loading ? (
+            <h2>{resultTitle}</h2>
+            {resultState.loading ? (
               <SkeletonBlock lines={4} />
-            ) : !searchState.hasSearched ? (
+            ) : !resultHasRequested ? (
               <StateMessage>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5, marginBottom: '8px' }}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><br/>
                 Nhập từ khóa hoặc quét chọn Pinyin ở thanh tìm kiếm phía trên.
               </StateMessage>
-            ) : searchState.items.length === 0 ? (
+            ) : resultState.items.length === 0 ? (
               <StateMessage error>
-                Không tìm thấy kết quả phù hợp cho "{searchKeyword}".
+                {filterActive ? 'Không có từ vựng phù hợp với bộ lọc.' : `Không tìm thấy kết quả phù hợp cho "${searchKeyword}".`}
               </StateMessage>
             ) : (
-              <WordList items={searchState.items} onSelectWord={handleSelectWord} />
+              <WordList items={resultState.items} onSelectWord={handleSelectWord} />
             )}
-            <Pagination page={searchState.page} totalPages={searchState.totalPages} onPageChange={loadSearch} />
+            <Pagination
+              page={resultState.page}
+              totalPages={resultState.totalPages}
+              onPageChange={filterActive ? loadFilter : loadSearch}
+            />
           </article>
         </div>
 
@@ -445,6 +462,45 @@ export default function DictionaryPage() {
             )}
           </article>
 
+
+          {/* Filters */}
+          <article className="card fade-in fade-in-delay-1">
+            <div className="row between" style={{ marginBottom: 12 }}>
+              <div>
+                <p className="section-eyebrow">Bộ lọc</p>
+                <h2 style={{ margin: 0 }}>HSK & loại từ</h2>
+              </div>
+              <button type="button" className="btn-ghost" style={{ padding: '4px 8px', fontSize: 12 }} onClick={resetFilter} disabled={!filterActive}>
+                Xóa lọc
+              </button>
+            </div>
+
+            <label className="section-eyebrow" htmlFor="dictionary-hsk-filter">Cấp HSK</label>
+            <select
+              id="dictionary-hsk-filter"
+              className="hsk-select"
+              value={filterForm.hskLevel}
+              onChange={(e) => updateFilter({ ...filterForm, hskLevel: Number(e.target.value) })}
+              style={{ width: '100%', margin: '8px 0 12px', padding: '10px' }}
+            >
+              {HSK_LEVELS.map((level) => (
+                <option key={level} value={level}>HSK {level}</option>
+              ))}
+            </select>
+
+            <div className="recent-searches">
+              {WORD_TYPES.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={selectedWordTypes.has(type) ? 'hero-chip active' : 'hero-chip'}
+                  onClick={() => toggleTypeFilter(type)}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </article>
 
           {/* Recommended */}
           <article className="card fade-in fade-in-delay-2">
